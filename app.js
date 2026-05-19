@@ -69,7 +69,8 @@ function buildAnnualDatasets(family, isCadre, includeAids, pinel) {
 // FREEZE STATE
 // ================================================================
 
-let frozen = false;
+let frozen      = false;
+let frozenGross = null; // canonical monthly gross at the frozen position
 
 function setFrozenUI(isFrozen) {
   for (const c of [monthlyChart, annualChart]) {
@@ -261,7 +262,8 @@ function attachMouseEvents(chart, toMonthlyGross) {
     if (!ca) return;
 
     if (frozen) {
-      frozen = false;
+      frozen      = false;
+      frozenGross = null;
       setFrozenUI(false);
       // If click landed outside the plot area, clear the crosshair
       if (x < ca.left || x > ca.right) {
@@ -269,7 +271,8 @@ function attachMouseEvents(chart, toMonthlyGross) {
         clearDetails();
       }
     } else if (x >= ca.left && x <= ca.right && monthlyChart._crosshairX != null) {
-      frozen = true;
+      frozen      = true;
+      frozenGross = Math.max(0, Math.min(CALC.MAX_GROSS, toMonthlyGross(chart.scales.x.getValueForPixel(x))));
       setFrozenUI(true);
     }
   });
@@ -506,6 +509,12 @@ function rebuild() {
       <span>${ds.label}</span>
     </div>
   `).join('');
+
+  // If frozen, re-render details and repin the crosshair on the updated curves
+  if (frozen && frozenGross != null) {
+    syncCrosshairs(frozenGross);
+    renderDetails(frozenGross);
+  }
 }
 
 // ================================================================
