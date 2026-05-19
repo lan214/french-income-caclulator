@@ -66,6 +66,27 @@ function buildAnnualDatasets(family, isCadre, includeAids) {
 }
 
 // ================================================================
+// FREEZE STATE
+// ================================================================
+
+let frozen = false;
+
+function setFrozenUI(isFrozen) {
+  for (const c of [monthlyChart, annualChart]) {
+    c.canvas.style.cursor = isFrozen ? 'pointer' : '';
+    c.update('none'); // redraw crosshair with new style
+  }
+  const hint = document.getElementById('chartHint');
+  if (hint) {
+    hint.textContent = isFrozen
+      ? 'Figé · Cliquez pour dégeler'
+      : 'Survolez l\'un des graphiques · Cliquez pour figer les valeurs';
+    hint.style.color = isFrozen ? '#6366f1' : '';
+    hint.style.fontWeight = isFrozen ? '600' : '';
+  }
+}
+
+// ================================================================
 // CROSSHAIR PLUGIN
 // ================================================================
 
@@ -76,12 +97,13 @@ const crosshairPlugin = {
     const { ctx, chartArea } = chart;
     ctx.save();
 
+    // Solid line when frozen, dashed when live
     ctx.beginPath();
-    ctx.setLineDash([4, 4]);
+    ctx.setLineDash(frozen ? [] : [4, 4]);
     ctx.moveTo(chart._crosshairX, chartArea.top);
     ctx.lineTo(chart._crosshairX, chartArea.bottom);
-    ctx.strokeStyle = 'rgba(99,102,241,0.4)';
-    ctx.lineWidth   = 1.5;
+    ctx.strokeStyle = frozen ? 'rgba(99,102,241,0.65)' : 'rgba(99,102,241,0.4)';
+    ctx.lineWidth   = frozen ? 2 : 1.5;
     ctx.stroke();
 
     const ds = chart.data.datasets[2];
@@ -90,8 +112,8 @@ const crosshairPlugin = {
       const yPx  = chart.scales.y.getPixelForValue(ds.data[cIdx].y);
       ctx.setLineDash([]);
       ctx.beginPath();
-      ctx.arc(chart._crosshairX, yPx, 5, 0, Math.PI * 2);
-      ctx.fillStyle   = '#6366f1';
+      ctx.arc(chart._crosshairX, yPx, frozen ? 7 : 5, 0, Math.PI * 2);
+      ctx.fillStyle   = frozen ? '#4f46e5' : '#6366f1';
       ctx.strokeStyle = 'white';
       ctx.lineWidth   = 2;
       ctx.fill();
@@ -206,25 +228,50 @@ function clearCrosshairs() {
 
 function attachMouseEvents(chart, toMonthlyGross) {
   chart.canvas.addEventListener('mousemove', (e) => {
+    if (frozen) return;
     const rect = chart.canvas.getBoundingClientRect();
     const x    = e.clientX - rect.left;
     const ca   = chart.chartArea;
     if (!ca) return;
 
     if (x >= ca.left && x <= ca.right) {
+      chart.canvas.style.cursor = 'crosshair';
       const raw          = chart.scales.x.getValueForPixel(x);
       const monthlyGross = Math.max(0, Math.min(CALC.MAX_GROSS, toMonthlyGross(raw)));
       syncCrosshairs(monthlyGross);
       renderDetails(monthlyGross);
     } else {
+      chart.canvas.style.cursor = '';
       clearCrosshairs();
       clearDetails();
     }
   });
 
   chart.canvas.addEventListener('mouseleave', () => {
+    if (frozen) return;
+    chart.canvas.style.cursor = '';
     clearCrosshairs();
     clearDetails();
+  });
+
+  chart.canvas.addEventListener('click', (e) => {
+    const rect = chart.canvas.getBoundingClientRect();
+    const x    = e.clientX - rect.left;
+    const ca   = chart.chartArea;
+    if (!ca) return;
+
+    if (frozen) {
+      frozen = false;
+      setFrozenUI(false);
+      // If click landed outside the plot area, clear the crosshair
+      if (x < ca.left || x > ca.right) {
+        clearCrosshairs();
+        clearDetails();
+      }
+    } else if (x >= ca.left && x <= ca.right && monthlyChart._crosshairX != null) {
+      frozen = true;
+      setFrozenUI(true);
+    }
   });
 }
 
