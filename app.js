@@ -17,19 +17,19 @@
 // DATASET BUILDERS
 // ================================================================
 
-function buildMonthlyDatasets(nbParts, isCadre, includeAids) {
-  const points = CALC.generateChartPoints(nbParts, isCadre, includeAids);
+function buildMonthlyDatasets(family, isCadre, includeAids) {
+  const points = CALC.generateChartPoints(family, isCadre, includeAids);
   return [
     {
       label: 'Salaire net (cotisations)',
       data: points.map(p => ({ x: p.gross, y: p.net })),
-      borderColor: '#d1d5db', borderWidth: 1.5, pointRadius: 0,
+      borderColor: '#c99e71', borderWidth: 1.5, pointRadius: 0,
       tension: 0.3, fill: false, order: 3,
     },
     {
       label: 'Net après impôt',
       data: points.map(p => ({ x: p.gross, y: p.netAfterIR })),
-      borderColor: '#94a3b8', borderWidth: 1.5, pointRadius: 0,
+      borderColor: '#52ab5b', borderWidth: 1.5, pointRadius: 0,
       tension: 0.3, fill: false, order: 2,
     },
     {
@@ -41,19 +41,19 @@ function buildMonthlyDatasets(nbParts, isCadre, includeAids) {
   ];
 }
 
-function buildAnnualDatasets(nbParts, isCadre, includeAids) {
-  const points = CALC.generateChartPoints(nbParts, isCadre, includeAids);
+function buildAnnualDatasets(family, isCadre, includeAids) {
+  const points = CALC.generateChartPoints(family, isCadre, includeAids);
   return [
     {
       label: 'Salaire net (cotisations)',
       data: points.map(p => ({ x: p.gross * 12, y: p.net * 12 })),
-      borderColor: '#d1d5db', borderWidth: 1.5, pointRadius: 0,
+      borderColor: '#c99e71', borderWidth: 1.5, pointRadius: 0,
       tension: 0.3, fill: false, order: 3,
     },
     {
       label: 'Net après impôt',
       data: points.map(p => ({ x: p.gross * 12, y: p.netAfterIR * 12 })),
-      borderColor: '#94a3b8', borderWidth: 1.5, pointRadius: 0,
+      borderColor: '#52ab5b', borderWidth: 1.5, pointRadius: 0,
       tension: 0.3, fill: false, order: 2,
     },
     {
@@ -66,7 +66,7 @@ function buildAnnualDatasets(nbParts, isCadre, includeAids) {
 }
 
 // ================================================================
-// CROSSHAIR PLUGIN  (registered once, works on any Chart instance)
+// CROSSHAIR PLUGIN
 // ================================================================
 
 const crosshairPlugin = {
@@ -76,7 +76,6 @@ const crosshairPlugin = {
     const { ctx, chartArea } = chart;
     ctx.save();
 
-    // Dashed vertical rule
     ctx.beginPath();
     ctx.setLineDash([4, 4]);
     ctx.moveTo(chart._crosshairX, chartArea.top);
@@ -85,8 +84,6 @@ const crosshairPlugin = {
     ctx.lineWidth   = 1.5;
     ctx.stroke();
 
-    // Dot on the "total" line (dataset index 2)
-    // _crosshairIdx is the dataset array index (same for both charts)
     const ds = chart.data.datasets[2];
     if (ds && chart._crosshairIdx != null) {
       const cIdx = Math.max(0, Math.min(ds.data.length - 1, chart._crosshairIdx));
@@ -177,21 +174,17 @@ const annualChart = new Chart(
 
 // ================================================================
 // CROSSHAIR SYNC
-// All sync is driven by the canonical monthly gross value.
-// Each chart independently converts to its own pixel coordinate.
 // ================================================================
 
 function syncCrosshairs(monthlyGross) {
   const idx = Math.round(monthlyGross / CALC.STEP);
 
-  // Monthly chart: x-axis is monthly gross
   if (monthlyChart.chartArea) {
     monthlyChart._crosshairX   = monthlyChart.scales.x.getPixelForValue(monthlyGross);
     monthlyChart._crosshairIdx = idx;
     monthlyChart.update('none');
   }
 
-  // Annual chart: x-axis is annual gross (monthly × 12)
   if (annualChart.chartArea) {
     annualChart._crosshairX   = annualChart.scales.x.getPixelForValue(monthlyGross * 12);
     annualChart._crosshairIdx = idx;
@@ -209,8 +202,6 @@ function clearCrosshairs() {
 
 // ================================================================
 // MOUSE EVENTS
-// Each canvas normalises its raw x value back to monthly gross,
-// then calls the shared sync + render functions.
 // ================================================================
 
 function attachMouseEvents(chart, toMonthlyGross) {
@@ -237,30 +228,64 @@ function attachMouseEvents(chart, toMonthlyGross) {
   });
 }
 
-// Monthly chart: raw value IS monthly gross
 attachMouseEvents(monthlyChart, raw => raw);
-// Annual chart: raw value is annual gross → divide by 12
 attachMouseEvents(annualChart,  raw => raw / 12);
 
 // ================================================================
-// DETAILS PANELS — rendering
-// Left panel  → annual values  (IDs prefixed with "a")
-// Right panel → monthly values (IDs prefixed with "d")
+// CHILDREN AGES UI
+// ================================================================
+
+function updateChildrenUI(nbChildren) {
+  const section = document.getElementById('childrenAgesSection');
+  const existing = section.querySelectorAll('.child-age-field');
+
+  for (let i = existing.length; i < nbChildren; i++) {
+    const div = document.createElement('div');
+    div.className = 'child-age-field field';
+    div.innerHTML = `<label>Enfant ${i + 1}</label>
+      <input type="number" id="childAge${i}" value="5" min="0" max="21" step="1">`;
+    div.querySelector('input').addEventListener('input', rebuild);
+    section.appendChild(div);
+  }
+
+  const all = section.querySelectorAll('.child-age-field');
+  for (let i = all.length - 1; i >= nbChildren; i--) {
+    all[i].remove();
+  }
+
+  section.style.display = nbChildren > 0 ? 'flex' : 'none';
+}
+
+// ================================================================
+// DETAILS PANELS
 // ================================================================
 
 document.getElementById('cotToggle').addEventListener('click', () => {
   document.getElementById('cotBlock').classList.toggle('open');
 });
+document.getElementById('aidsToggle').addEventListener('click', () => {
+  document.getElementById('aidsBlock').classList.toggle('open');
+});
 
-// ── Formatting helpers ──────────────────────────────────────────
 function fmtEur(v)     { return Math.round(v).toLocaleString('fr-FR') + ' €'; }
 function fmtPct(r)     { return (r * 100).toFixed(1) + ' %'; }
 function placeholder() { return '<span class="placeholder">—</span>'; }
 
 // ── Read controls ───────────────────────────────────────────────
 function getInputs() {
+  const adultsBtn = document.querySelector('#adultsToggle .toggle-btn.active');
+  const adults    = adultsBtn ? parseInt(adultsBtn.dataset.val) : 1;
+  const isDualIncome = adults === 2 && (document.getElementById('dualIncome')?.checked ?? true);
+  const nbChildren   = Math.max(0, Math.min(10, parseInt(document.getElementById('nbChildren').value) || 0));
+
+  const childrenAges = [];
+  for (let i = 0; i < nbChildren; i++) {
+    const el = document.getElementById(`childAge${i}`);
+    childrenAges.push(el ? Math.max(0, Math.min(21, parseInt(el.value) || 0)) : 0);
+  }
+
   return {
-    nbParts:     Math.max(0.5, parseFloat(document.getElementById('nbParts').value) || 1),
+    family:      { adults, isDualIncome, childrenAges },
     isCadre:     document.getElementById('status').value === 'cadre',
     includeAids: document.getElementById('includeAids').checked,
   };
@@ -269,23 +294,44 @@ function getInputs() {
 // ── Render both panels ──────────────────────────────────────────
 function renderDetails(grossRaw) {
   const gross = Math.round(grossRaw / CALC.STEP) * CALC.STEP;
-  const { nbParts, isCadre, includeAids } = getInputs();
-  const r = CALC.calculate(gross, nbParts, isCadre, includeAids);
+  const { family, isCadre, includeAids } = getInputs();
+  const r = CALC.calculate(gross, family, isCadre, includeAids);
   const b = r.breakdown;
 
-  // ── RIGHT panel — monthly values ────────────────────────────
-  setText('dGross',   fmtEur(gross));
-  setText('dCot',     '−' + fmtEur(r.totalCotisations));
+  // ── RIGHT panel — monthly ───────────────────────────────────
+  setText('dGross',        fmtEur(gross));
+  setText('dCot',          '−' + fmtEur(r.totalCotisations));
   setText('dNet',          fmtEur(r.net));
   setText('dNetImposable', fmtEur(r.netImposable));
-  setText('dTax',     r.monthlyIR > 0.5 ? '−' + fmtEur(r.monthlyIR) : fmtEur(0));
-  setText('dRateEff', fmtPct(r.effectiveRate));
-  setText('dRateTMI', fmtPct(r.marginalRate));
-  setText('dAids',    r.aide > 0.5 ? '+' + fmtEur(r.aide) : fmtEur(0));
-  setText('dTotal',   fmtEur(r.total));
+  setText('dTax',          r.monthlyIR > 0.5 ? '−' + fmtEur(r.monthlyIR) : fmtEur(0));
+  setText('dRateEff',      fmtPct(r.effectiveRate));
+  setText('dRateTMI',      fmtPct(r.marginalRate));
+  setText('dTotal',        fmtEur(r.total));
 
-  // Cotisations breakdown (right panel only)
-  const lines = [
+  // Aids total + expandable breakdown
+  setText('dAids', r.aide > 0.5 ? '+' + fmtEur(r.aide) : fmtEur(0));
+  const aidsLines = [
+    { label: 'RSA',                     val: r.rsa },
+    { label: "Prime d'activité",         val: r.primeActivite },
+    { label: 'Allocations familiales',   val: r.af },
+    { label: 'PAJE — alloc. de base',    val: r.paje },
+    { label: 'Alloc. rentrée scolaire',  val: r.ars,
+      sub: 'moy. mensuelle (versée en sept.)' },
+    { label: 'Complément familial',      val: r.cf },
+  ].filter(l => l.val > 0.01);
+
+  document.getElementById('aidsList').innerHTML = aidsLines.map(l => `
+    <div class="cot-row">
+      <div>
+        <span class="cot-row-label">${l.label}</span>
+        ${l.sub ? `<span class="cot-row-sub">${l.sub}</span>` : ''}
+      </div>
+      <span class="cot-row-val" style="color:#22c55e">+${fmtEur(l.val)}</span>
+    </div>
+  `).join('');
+
+  // Cotisations breakdown
+  const cotLines = [
     {
       label: 'Vieillesse — CNAV',
       val:   b.vieillesse_plaf + b.vieillesse_dep,
@@ -310,7 +356,7 @@ function renderDetails(grossRaw) {
     { label: 'CSG non-déd. + CRDS', val: b.csg_non_ded + b.crds, sub: '2,40 % + 0,50 % — non déductibles IR' },
   ];
 
-  document.getElementById('cotList').innerHTML = lines
+  document.getElementById('cotList').innerHTML = cotLines
     .filter(l => l.val > 0.005)
     .map(l => `
       <div class="cot-row">
@@ -322,17 +368,17 @@ function renderDetails(grossRaw) {
       </div>
     `).join('');
 
-  // ── LEFT panel — annual values ──────────────────────────────
-  setText('aGross',   fmtEur(gross * 12));
-  setText('aCot',     '−' + fmtEur(r.totalCotisations * 12));
+  // ── LEFT panel — annual ─────────────────────────────────────
+  setText('aGross',        fmtEur(gross * 12));
+  setText('aCot',          '−' + fmtEur(r.totalCotisations * 12));
   setText('aNet',          fmtEur(r.net * 12));
   setText('aNetImposable', fmtEur(r.netImposable * 12));
-  setText('aTax',     r.annualIR > 0.5 ? '−' + fmtEur(r.annualIR) : fmtEur(0));
-  setText('aRateEff', fmtPct(r.effectiveRate));
-  setText('aAids',    r.aide * 12 > 0.5 ? '+' + fmtEur(r.aide * 12) : fmtEur(0));
-  setText('aTotal',   fmtEur(r.total * 12));
+  setText('aTax',          r.annualIR > 0.5 ? '−' + fmtEur(r.annualIR) : fmtEur(0));
+  setText('aRateEff',      fmtPct(r.effectiveRate));
+  setText('aAids',         r.aide * 12 > 0.5 ? '+' + fmtEur(r.aide * 12) : fmtEur(0));
+  setText('aTotal',        fmtEur(r.total * 12));
 
-  // SMIC badge (monthly panel only)
+  // SMIC badge
   const badge = document.getElementById('grossBadge');
   if (Math.abs(gross - CALC.SMIC_GROSS) <= CALC.STEP / 2) {
     badge.textContent   = 'SMIC janv. 2026';
@@ -347,11 +393,11 @@ function clearDetails() {
   ['dGross','dCot','dNet','dNetImposable','dTax','dRateEff','dRateTMI','dAids','dTotal',
    'aGross','aCot','aNet','aNetImposable','aTax','aRateEff','aAids','aTotal']
     .forEach(id => setHTML(id, ph));
-  document.getElementById('cotList').innerHTML        = '';
+  document.getElementById('cotList').innerHTML  = '';
+  document.getElementById('aidsList').innerHTML = '';
   document.getElementById('grossBadge').style.display = 'none';
 }
 
-// ── DOM helpers ─────────────────────────────────────────────────
 function setText(id, v) { document.getElementById(id).textContent = v; }
 function setHTML(id, v) { document.getElementById(id).innerHTML   = v; }
 
@@ -360,20 +406,24 @@ function setHTML(id, v) { document.getElementById(id).innerHTML   = v; }
 // ================================================================
 
 function rebuild() {
-  const { nbParts, isCadre, includeAids } = getInputs();
+  const { family, isCadre, includeAids } = getInputs();
+  const nbParts = CALC.calcNbParts(family);
 
-  // Show / hide aids rows in both panels
+  // Update computed QF display
+  document.getElementById('nbPartsDisplay').textContent =
+    nbParts.toLocaleString('fr-FR', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+
+  // Show/hide aids rows in both panels
   document.getElementById('aidsRow').style.display      = includeAids ? '' : 'none';
   document.getElementById('aidsDivider').style.display  = includeAids ? '' : 'none';
   document.getElementById('aAidsRow').style.display     = includeAids ? '' : 'none';
   document.getElementById('aAidsDivider').style.display = includeAids ? '' : 'none';
 
-  monthlyChart.data.datasets = buildMonthlyDatasets(nbParts, isCadre, includeAids);
-  annualChart.data.datasets  = buildAnnualDatasets(nbParts, isCadre, includeAids);
+  monthlyChart.data.datasets = buildMonthlyDatasets(family, isCadre, includeAids);
+  annualChart.data.datasets  = buildAnnualDatasets(family, isCadre, includeAids);
   monthlyChart.update();
   annualChart.update();
 
-  // Legend from monthly chart (labels are identical on both)
   document.getElementById('legend').innerHTML = monthlyChart.data.datasets.map(ds => `
     <div class="legend-item">
       <div class="legend-line" style="background:${ds.borderColor}"></div>
@@ -386,8 +436,27 @@ function rebuild() {
 // EVENT LISTENERS + BOOT
 // ================================================================
 
-document.getElementById('nbParts').addEventListener('input',  rebuild);
-document.getElementById('status').addEventListener('change',  rebuild);
+// Adults toggle
+document.querySelectorAll('#adultsToggle .toggle-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('#adultsToggle .toggle-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('dualIncomeField').style.display =
+      parseInt(btn.dataset.val) === 2 ? '' : 'none';
+    rebuild();
+  });
+});
+
+// Children count
+document.getElementById('nbChildren').addEventListener('input', () => {
+  const n = Math.max(0, Math.min(10, parseInt(document.getElementById('nbChildren').value) || 0));
+  updateChildrenUI(n);
+  rebuild();
+});
+
+// Other controls
+document.getElementById('dualIncome').addEventListener('change', rebuild);
+document.getElementById('status').addEventListener('change',     rebuild);
 document.getElementById('includeAids').addEventListener('change', rebuild);
 
 rebuild();

@@ -370,6 +370,49 @@
       letter-spacing: 0.05em;
     }
 
+    /* ─── Adults toggle ─────────────────────────────── */
+    .toggle-group {
+      display: flex;
+      border: 1.5px solid #e5e7eb;
+      border-radius: 9px;
+      overflow: hidden;
+    }
+
+    .toggle-btn {
+      flex: 1;
+      padding: 9px 16px;
+      background: white;
+      border: none;
+      font-size: 14px;
+      font-weight: 500;
+      color: #6b7280;
+      cursor: pointer;
+      transition: background 0.15s, color 0.15s;
+      white-space: nowrap;
+    }
+
+    .toggle-btn:not(:last-child) { border-right: 1.5px solid #e5e7eb; }
+
+    .toggle-btn.active {
+      background: #6366f1;
+      color: white;
+      font-weight: 600;
+    }
+
+    /* ─── Child age inputs ───────────────────────────── */
+    #childrenAgesSection { flex-wrap: wrap; gap: 8px; align-items: flex-end; }
+
+    .child-age-field input[type="number"] { min-width: 72px !important; }
+
+    /* ─── QF computed display ────────────────────────── */
+    .qf-display {
+      font-size: 16px;
+      font-weight: 700;
+      color: #374151;
+      padding: 9px 0;
+      opacity: 0.7;
+    }
+
     /* ─── Responsive ─────────────────────────────────── */
     @media (max-width: 860px) {
       .chart-row { grid-template-columns: 1fr; }
@@ -386,10 +429,41 @@
   </header>
 
   <div class="controls">
+
+    <!-- Adultes -->
     <div class="field">
-      <label>Nombre de parts fiscales</label>
-      <input type="number" id="nbParts" value="1" min="0.5" max="10" step="0.5">
+      <label>Adultes dans le foyer</label>
+      <div class="toggle-group" id="adultsToggle">
+        <button class="toggle-btn active" data-val="1">Célibataire</button>
+        <button class="toggle-btn" data-val="2">En couple</button>
+      </div>
     </div>
+
+    <!-- Biactif (couple uniquement) -->
+    <div class="field" id="dualIncomeField" style="display:none">
+      <div class="field-label">Type de couple</div>
+      <div class="checkbox-row" style="padding-top:9px">
+        <input type="checkbox" id="dualIncome" checked>
+        <label for="dualIncome">Biactif (deux salaires)</label>
+      </div>
+    </div>
+
+    <!-- Enfants -->
+    <div class="field">
+      <label>Nombre d'enfants</label>
+      <input type="number" id="nbChildren" value="0" min="0" max="10" step="1" style="min-width:100px">
+    </div>
+
+    <!-- Âge de chaque enfant (dynamique) -->
+    <div id="childrenAgesSection" style="display:none"></div>
+
+    <!-- Quotient familial (calculé) -->
+    <div class="field">
+      <label>Quotient familial</label>
+      <div class="qf-display"><span id="nbPartsDisplay">1,0</span> part</div>
+    </div>
+
+    <!-- Statut -->
     <div class="field">
       <label>Statut</label>
       <select id="status">
@@ -397,14 +471,17 @@
         <option value="non-cadre">Non-cadre</option>
       </select>
     </div>
+
+    <!-- Aides sociales -->
     <div class="checkbox-wrap">
       <div class="field-label">Aides sociales</div>
       <div class="checkbox-row">
         <input type="checkbox" id="includeAids" checked>
         <label for="includeAids">Inclure les aides sociales</label>
       </div>
-      <div class="checkbox-hint">RSA &amp; Prime d'activité (barème avril 2026)</div>
+      <div class="checkbox-hint">RSA, Prime d'activité, AF, PAJE, ARS, CF (2026)</div>
     </div>
+
   </div>
 
   <div class="main">
@@ -476,9 +553,19 @@
         </div>
 
         <div class="divider" id="aidsDivider"></div>
-        <div class="detail-row" id="aidsRow">
-          <label>Aides sociales</label>
-          <div class="detail-val em-positive" id="dAids"><span class="placeholder">—</span></div>
+        <div id="aidsRow">
+          <div class="cot-block" id="aidsBlock">
+            <div class="cot-header" id="aidsToggle">
+              <div class="cot-header-label">
+                Aides sociales
+                <span class="cot-chevron">▼</span>
+              </div>
+              <div style="font-size:17px;font-weight:700;color:#22c55e" id="dAids">
+                <span class="placeholder">—</span>
+              </div>
+            </div>
+            <div class="cot-list" id="aidsList"></div>
+          </div>
         </div>
 
         <div class="divider"></div>
