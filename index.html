@@ -115,10 +115,17 @@
       padding-left: 26px;
     }
 
-    /* ─── Main grid ─────────────────────────────────── */
+    /* ─── Main layout: two stacked rows ─────────────── */
     .main {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    /* Each row = chart (1fr) + details panel (fixed width) */
+    .chart-row {
       display: grid;
-      grid-template-columns: 1fr 320px;
+      grid-template-columns: 1fr 280px;
       gap: 20px;
       align-items: start;
     }
@@ -128,54 +135,68 @@
       background: white;
       border-radius: 14px;
       box-shadow: 0 1px 4px rgba(0,0,0,0.07);
-      padding: 24px 28px 20px;
+      padding: 20px 24px 16px;
     }
 
     .chart-header {
       display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-      margin-bottom: 18px;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 14px;
       flex-wrap: wrap;
-      gap: 8px;
     }
 
     .chart-title {
-      font-size: 15px;
+      font-size: 13px;
       font-weight: 600;
       color: #374151;
+      flex: 1;
+    }
+
+    .chart-period {
+      font-size: 11px;
+      font-weight: 700;
+      color: #6366f1;
+      background: #eef2ff;
+      border-radius: 4px;
+      padding: 2px 8px;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      flex-shrink: 0;
     }
 
     .legend {
       display: flex;
       flex-wrap: wrap;
-      gap: 14px;
+      gap: 12px;
+      width: 100%;
+      margin-top: 2px;
     }
 
     .legend-item {
       display: flex;
       align-items: center;
-      gap: 7px;
-      font-size: 12px;
+      gap: 6px;
+      font-size: 11px;
       color: #6b7280;
     }
 
     .legend-line {
-      width: 22px;
+      width: 20px;
       height: 2.5px;
       border-radius: 2px;
     }
 
     .chart-wrap {
       position: relative;
-      height: 430px;
+      height: 280px;
     }
 
     .hint {
-      font-size: 12px;
+      font-size: 11px;
       color: #c4c9d4;
       text-align: center;
-      margin-top: 12px;
+      margin-top: 10px;
       user-select: none;
     }
 
@@ -184,25 +205,37 @@
       background: white;
       border-radius: 14px;
       box-shadow: 0 1px 4px rgba(0,0,0,0.07);
-      padding: 22px 22px;
+      padding: 20px 18px;
       position: sticky;
       top: 24px;
     }
 
     .details-title {
-      font-size: 15px;
-      font-weight: 600;
+      font-size: 14px;
+      font-weight: 700;
       color: #374151;
-      margin-bottom: 16px;
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
     }
 
-    .detail-row {
-      margin-bottom: 14px;
+    .panel-period {
+      font-size: 10px;
+      font-weight: 700;
+      color: white;
+      border-radius: 4px;
+      padding: 2px 7px;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
     }
+
+    .detail-row { margin-bottom: 12px; }
 
     .detail-row label {
       display: block;
-      font-size: 11px;
+      font-size: 10px;
       font-weight: 600;
       color: #9ca3af;
       text-transform: uppercase;
@@ -211,26 +244,26 @@
     }
 
     .detail-val {
-      font-size: 18px;
+      font-size: 17px;
       font-weight: 700;
       color: #111827;
     }
 
     .detail-val.em-negative { color: #ef4444; }
     .detail-val.em-positive { color: #22c55e; }
-    .detail-val.em-total    { color: #6366f1; font-size: 21px; }
+    .detail-val.em-total    { color: #6366f1; font-size: 19px; }
 
     .rate-row {
       display: flex;
-      gap: 16px;
-      margin-bottom: 14px;
+      gap: 12px;
+      margin-bottom: 12px;
     }
 
     .rate-item { flex: 1; }
 
     .rate-item label {
       display: block;
-      font-size: 11px;
+      font-size: 10px;
       font-weight: 600;
       color: #9ca3af;
       text-transform: uppercase;
@@ -239,7 +272,7 @@
     }
 
     .rate-val {
-      font-size: 17px;
+      font-size: 15px;
       font-weight: 700;
       color: #111827;
     }
@@ -247,17 +280,17 @@
     .divider {
       height: 1px;
       background: #f3f4f6;
-      margin: 4px 0 14px;
+      margin: 2px 0 12px;
     }
 
     .placeholder {
       color: #d1d5db;
-      font-size: 15px;
+      font-size: 14px;
       font-weight: 400;
     }
 
-    /* ─── Cotisations breakdown ──────────────────────── */
-    .cot-block { margin-bottom: 14px; }
+    /* ─── Cotisations breakdown (monthly panel) ──────── */
+    .cot-block { margin-bottom: 12px; }
 
     .cot-header {
       display: flex;
@@ -268,7 +301,7 @@
     }
 
     .cot-header-label {
-      font-size: 11px;
+      font-size: 10px;
       font-weight: 600;
       color: #9ca3af;
       text-transform: uppercase;
@@ -279,7 +312,7 @@
     }
 
     .cot-chevron {
-      font-size: 9px;
+      font-size: 8px;
       color: #c4c9d4;
       transition: transform 0.18s;
     }
@@ -287,7 +320,7 @@
     .cot-block.open .cot-chevron { transform: rotate(180deg); }
 
     .cot-total {
-      font-size: 18px;
+      font-size: 17px;
       font-weight: 700;
       color: #ef4444;
     }
@@ -305,15 +338,15 @@
       display: flex;
       justify-content: space-between;
       align-items: flex-start;
-      padding: 4px 0;
-      font-size: 12px;
+      padding: 3px 0;
+      font-size: 11px;
     }
 
     .cot-row-label { color: #6b7280; }
 
     .cot-row-sub {
       display: block;
-      font-size: 10px;
+      font-size: 9px;
       color: #9ca3af;
       margin-top: 1px;
     }
@@ -321,27 +354,25 @@
     .cot-row-val {
       font-weight: 600;
       color: #f87171;
-      font-size: 12px;
+      font-size: 11px;
       flex-shrink: 0;
-      margin-left: 8px;
+      margin-left: 6px;
     }
 
     /* ─── SMIC badge ─────────────────────────────────── */
     .smic-badge {
-      display: inline-block;
-      font-size: 10px;
+      font-size: 9px;
       font-weight: 700;
       color: #6366f1;
       background: #eef2ff;
       border-radius: 4px;
-      padding: 1px 6px;
-      vertical-align: middle;
-      margin-left: 6px;
+      padding: 1px 5px;
       letter-spacing: 0.05em;
     }
 
-    @media (max-width: 900px) {
-      .main { grid-template-columns: 1fr; }
+    /* ─── Responsive ─────────────────────────────────── */
+    @media (max-width: 860px) {
+      .chart-row { grid-template-columns: 1fr; }
       .details-card { position: static; }
     }
   </style>
@@ -351,9 +382,7 @@
 
   <header>
     <h1>Calculateur de Revenus</h1>
-    <p class="subtitle">
-      Simulation du revenu net total — France 2026 · PMSS 4 005 €
-    </p>
+    <p class="subtitle">Simulation du revenu net total — France 2026 · PMSS 4 005 €</p>
   </header>
 
   <div class="controls">
@@ -380,77 +409,153 @@
 
   <div class="main">
 
-    <!-- Chart -->
-    <div class="chart-card">
-      <div class="chart-header">
-        <div class="chart-title">Entrée nette en fonction du salaire brut</div>
-        <div class="legend" id="legend"></div>
+    <!-- ══ ROW 1 — Monthly ════════════════════════════════════════ -->
+    <div class="chart-row">
+
+      <div class="chart-card">
+        <div class="chart-header">
+          <div class="chart-title">Entrée nette en fonction du salaire brut</div>
+          <span class="chart-period">Mensuel</span>
+          <div class="legend" id="legend"></div>
+        </div>
+        <div class="chart-wrap">
+          <canvas id="monthlyCanvas"></canvas>
+        </div>
+        <p class="hint">Survolez l'un des graphiques — les deux curseurs sont synchronisés</p>
       </div>
-      <div class="chart-wrap">
-        <canvas id="myChart"></canvas>
+
+      <div class="details-card">
+        <div class="details-title">
+          Détails
+          <span class="panel-period" style="background:#94a3b8">Mensuel</span>
+          <span id="grossBadge" class="smic-badge" style="display:none"></span>
+        </div>
+
+        <div class="detail-row">
+          <label>Salaire brut</label>
+          <div class="detail-val" id="dGross"><span class="placeholder">—</span></div>
+        </div>
+
+        <div class="cot-block" id="cotBlock">
+          <div class="cot-header" id="cotToggle">
+            <div class="cot-header-label">
+              Cotisations salariales
+              <span class="cot-chevron">▼</span>
+            </div>
+            <div class="cot-total" id="dCot"><span class="placeholder">—</span></div>
+          </div>
+          <div class="cot-list" id="cotList"></div>
+        </div>
+
+        <div class="detail-row">
+          <label>Salaire net</label>
+          <div class="detail-val" id="dNet"><span class="placeholder">—</span></div>
+        </div>
+
+        <div class="detail-row">
+          <label>Salaire imposable</label>
+          <div class="detail-val" style="font-size:15px;color:#6b7280" id="dNetImposable"><span class="placeholder">—</span></div>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="detail-row">
+          <label>Impôt sur le revenu</label>
+          <div class="detail-val em-negative" id="dTax"><span class="placeholder">—</span></div>
+        </div>
+
+        <div class="rate-row">
+          <div class="rate-item">
+            <label>Taux effectif</label>
+            <div class="rate-val" id="dRateEff"><span class="placeholder">—</span></div>
+          </div>
+          <div class="rate-item">
+            <label>TMI</label>
+            <div class="rate-val" id="dRateTMI"><span class="placeholder">—</span></div>
+          </div>
+        </div>
+
+        <div class="divider" id="aidsDivider"></div>
+        <div class="detail-row" id="aidsRow">
+          <label>Aides sociales</label>
+          <div class="detail-val em-positive" id="dAids"><span class="placeholder">—</span></div>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="detail-row">
+          <label>Revenu total</label>
+          <div class="detail-val em-total" id="dTotal"><span class="placeholder">—</span></div>
+        </div>
       </div>
-      <p class="hint">Survolez le graphique pour voir les détails</p>
+
     </div>
 
-    <!-- Details panel -->
-    <div class="details-card">
-      <div class="details-title">
-        Détails
-        <span id="grossBadge" class="smic-badge" style="display:none"></span>
-      </div>
+    <!-- ══ ROW 2 — Annual ═════════════════════════════════════════ -->
+    <div class="chart-row">
 
-      <div class="detail-row">
-        <label>Salaire brut mensuel</label>
-        <div class="detail-val" id="dGross"><span class="placeholder">—</span></div>
-      </div>
-
-      <!-- Cotisations (collapsible) -->
-      <div class="cot-block" id="cotBlock">
-        <div class="cot-header" id="cotToggle">
-          <div class="cot-header-label">
-            Cotisations salariales
-            <span class="cot-chevron" id="cotChevron">▼</span>
-          </div>
-          <div class="cot-total" id="dCot"><span class="placeholder">—</span></div>
+      <div class="chart-card">
+        <div class="chart-header">
+          <div class="chart-title">Entrée nette en fonction du salaire brut</div>
+          <span class="chart-period">Annuel</span>
         </div>
-        <div class="cot-list" id="cotList"></div>
-      </div>
-
-      <div class="detail-row">
-        <label>Salaire net (après cotisations)</label>
-        <div class="detail-val" id="dNet"><span class="placeholder">—</span></div>
-      </div>
-
-      <div class="divider"></div>
-
-      <div class="detail-row">
-        <label>Impôt sur le revenu (mensuel)</label>
-        <div class="detail-val em-negative" id="dTax"><span class="placeholder">—</span></div>
-      </div>
-
-      <div class="rate-row">
-        <div class="rate-item">
-          <label>Taux effectif</label>
-          <div class="rate-val" id="dRateEff"><span class="placeholder">—</span></div>
-        </div>
-        <div class="rate-item">
-          <label>TMI</label>
-          <div class="rate-val" id="dRateTMI"><span class="placeholder">—</span></div>
+        <div class="chart-wrap">
+          <canvas id="annualCanvas"></canvas>
         </div>
       </div>
 
-      <div class="divider" id="aidsDivider"></div>
-      <div class="detail-row" id="aidsRow">
-        <label>Total aides sociales (mensuel)</label>
-        <div class="detail-val em-positive" id="dAids"><span class="placeholder">—</span></div>
+      <div class="details-card">
+        <div class="details-title">
+          Détails
+          <span class="panel-period" style="background:#6366f1">Annuel</span>
+        </div>
+
+        <div class="detail-row">
+          <label>Salaire brut</label>
+          <div class="detail-val" id="aGross"><span class="placeholder">—</span></div>
+        </div>
+
+        <div class="detail-row">
+          <label>Cotisations salariales</label>
+          <div class="detail-val em-negative" id="aCot"><span class="placeholder">—</span></div>
+        </div>
+
+        <div class="detail-row">
+          <label>Salaire net</label>
+          <div class="detail-val" id="aNet"><span class="placeholder">—</span></div>
+        </div>
+
+        <div class="detail-row">
+          <label>Salaire imposable</label>
+          <div class="detail-val" style="font-size:15px;color:#6b7280" id="aNetImposable"><span class="placeholder">—</span></div>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="detail-row">
+          <label>Impôt sur le revenu</label>
+          <div class="detail-val em-negative" id="aTax"><span class="placeholder">—</span></div>
+        </div>
+
+        <div class="detail-row">
+          <label>Taux d'imposition effectif</label>
+          <div class="rate-val" id="aRateEff"><span class="placeholder">—</span></div>
+        </div>
+
+        <div class="divider" id="aAidsDivider"></div>
+        <div class="detail-row" id="aAidsRow">
+          <label>Aides sociales</label>
+          <div class="detail-val em-positive" id="aAids"><span class="placeholder">—</span></div>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="detail-row">
+          <label>Revenu total</label>
+          <div class="detail-val em-total" id="aTotal"><span class="placeholder">—</span></div>
+        </div>
       </div>
 
-      <div class="divider"></div>
-
-      <div class="detail-row">
-        <label>Revenu total mensuel</label>
-        <div class="detail-val em-total" id="dTotal"><span class="placeholder">—</span></div>
-      </div>
     </div>
 
   </div>
@@ -458,7 +563,7 @@
 
 <!-- Business logic (no DOM) -->
 <script src="calculator.js"></script>
-<!-- UI layer (chart + DOM wiring) -->
+<!-- UI layer (charts + DOM wiring) -->
 <script src="app.js"></script>
 </body>
 </html>
