@@ -17,8 +17,8 @@
 // DATASET BUILDERS
 // ================================================================
 
-function buildMonthlyDatasets(family, isCadre, includeAids) {
-  const points = CALC.generateChartPoints(family, isCadre, includeAids);
+function buildMonthlyDatasets(family, isCadre, includeAids, pinel) {
+  const points = CALC.generateChartPoints(family, isCadre, includeAids, pinel);
   return [
     {
       label: 'Salaire net (cotisations)',
@@ -41,8 +41,8 @@ function buildMonthlyDatasets(family, isCadre, includeAids) {
   ];
 }
 
-function buildAnnualDatasets(family, isCadre, includeAids) {
-  const points = CALC.generateChartPoints(family, isCadre, includeAids);
+function buildAnnualDatasets(family, isCadre, includeAids, pinel) {
+  const points = CALC.generateChartPoints(family, isCadre, includeAids, pinel);
   return [
     {
       label: 'Salaire net (cotisations)',
@@ -289,7 +289,7 @@ function updateChildrenUI(nbChildren) {
   for (let i = existing.length; i < nbChildren; i++) {
     const div = document.createElement('div');
     div.className = 'child-age-field field';
-    div.innerHTML = `<label>Enfant ${i + 1}</label>
+    div.innerHTML = `<label>Age enfant ${i + 1}</label>
       <input type="number" id="childAge${i}" value="5" min="0" max="21" step="1">`;
     div.querySelector('input').addEventListener('input', rebuild);
     section.appendChild(div);
@@ -331,18 +331,27 @@ function getInputs() {
     childrenAges.push(el ? Math.max(0, Math.min(21, parseInt(el.value) || 0)) : 0);
   }
 
+  const pinelEnabled = document.getElementById('pinelEnabled').checked;
+  const pinel = {
+    enabled:    pinelEnabled,
+    investment: parseFloat(document.getElementById('pinelInvest').value) || 0,
+    duration:   parseInt(document.getElementById('pinelDuration').value) || 9,
+    type:       document.querySelector('#pinelTypeToggle .toggle-btn.active')?.dataset.val ?? 'plus',
+  };
+
   return {
     family:      { adults, isDualIncome, childrenAges },
     isCadre:     document.getElementById('status').value === 'cadre',
     includeAids: document.getElementById('includeAids').checked,
+    pinel,
   };
 }
 
 // ── Render both panels ──────────────────────────────────────────
 function renderDetails(grossRaw) {
   const gross = Math.round(grossRaw / CALC.STEP) * CALC.STEP;
-  const { family, isCadre, includeAids } = getInputs();
-  const r = CALC.calculate(gross, family, isCadre, includeAids);
+  const { family, isCadre, includeAids, pinel } = getInputs();
+  const r = CALC.calculate(gross, family, isCadre, includeAids, pinel);
   const b = r.breakdown;
 
   // ── RIGHT panel — monthly ───────────────────────────────────
@@ -354,6 +363,11 @@ function renderDetails(grossRaw) {
   setText('dRateEff',      fmtPct(r.effectiveRate));
   setText('dRateTMI',      fmtPct(r.marginalRate));
   setText('dTotal',        fmtEur(r.total));
+
+  // Pinel reduction (monthly panel)
+  if (pinel.enabled) {
+    setText('dPinel', r.pinelMonthly > 0.01 ? '+' + fmtEur(r.pinelMonthly) : fmtEur(0));
+  }
 
   // Aids total + expandable breakdown
   setText('dAids', r.aide > 0.5 ? '+' + fmtEur(r.aide) : fmtEur(0));
@@ -425,6 +439,11 @@ function renderDetails(grossRaw) {
   setText('aAids',         r.aide * 12 > 0.5 ? '+' + fmtEur(r.aide * 12) : fmtEur(0));
   setText('aTotal',        fmtEur(r.total * 12));
 
+  // Pinel reduction (annual panel)
+  if (pinel.enabled) {
+    setText('aPinel', r.pinelBenefitAnnual > 0.01 ? '+' + fmtEur(r.pinelBenefitAnnual) : fmtEur(0));
+  }
+
   // SMIC badge
   const badge = document.getElementById('grossBadge');
   if (Math.abs(gross - CALC.SMIC_GROSS) <= CALC.STEP / 2) {
@@ -437,9 +456,9 @@ function renderDetails(grossRaw) {
 
 function clearDetails() {
   const ph = placeholder();
-  ['dGross','dCot','dNet','dNetImposable','dTax','dRateEff','dRateTMI','dAids','dTotal',
-   'aGross','aCot','aNet','aNetImposable','aTax','aRateEff','aAids','aTotal']
-    .forEach(id => setHTML(id, ph));
+  ['dGross','dCot','dNet','dNetImposable','dTax','dRateEff','dRateTMI','dAids','dPinel','dTotal',
+   'aGross','aCot','aNet','aNetImposable','aTax','aRateEff','aAids','aPinel','aTotal']
+    .forEach(id => { const el = document.getElementById(id); if (el) setHTML(id, ph); });
   document.getElementById('cotList').innerHTML  = '';
   document.getElementById('aidsList').innerHTML = '';
   document.getElementById('grossBadge').style.display = 'none';
@@ -453,7 +472,7 @@ function setHTML(id, v) { document.getElementById(id).innerHTML   = v; }
 // ================================================================
 
 function rebuild() {
-  const { family, isCadre, includeAids } = getInputs();
+  const { family, isCadre, includeAids, pinel } = getInputs();
   const nbParts = CALC.calcNbParts(family);
 
   // Update computed QF display
@@ -466,8 +485,18 @@ function rebuild() {
   document.getElementById('aAidsRow').style.display     = includeAids ? '' : 'none';
   document.getElementById('aAidsDivider').style.display = includeAids ? '' : 'none';
 
-  monthlyChart.data.datasets = buildMonthlyDatasets(family, isCadre, includeAids);
-  annualChart.data.datasets  = buildAnnualDatasets(family, isCadre, includeAids);
+  // Show/hide Pinel detail rows + update computed reduction display
+  document.getElementById('dPinelRow').style.display = pinel.enabled ? '' : 'none';
+  document.getElementById('aPinelRow').style.display = pinel.enabled ? '' : 'none';
+  document.getElementById('pinelFields').style.display = pinel.enabled ? 'flex' : 'none';
+  if (pinel.enabled) {
+    const annualReduction = CALC.calcPinelReduction(pinel);
+    document.getElementById('pinelAnnualDisplay').textContent  = fmtEur(annualReduction);
+    document.getElementById('pinelMonthlyDisplay').textContent = fmtEur(annualReduction / 12);
+  }
+
+  monthlyChart.data.datasets = buildMonthlyDatasets(family, isCadre, includeAids, pinel);
+  annualChart.data.datasets  = buildAnnualDatasets(family, isCadre, includeAids, pinel);
   monthlyChart.update();
   annualChart.update();
 
@@ -502,8 +531,20 @@ document.getElementById('nbChildren').addEventListener('input', () => {
 });
 
 // Other controls
-document.getElementById('dualIncome').addEventListener('change', rebuild);
-document.getElementById('status').addEventListener('change',     rebuild);
-document.getElementById('includeAids').addEventListener('change', rebuild);
+document.getElementById('dualIncome').addEventListener('change',   rebuild);
+document.getElementById('status').addEventListener('change',       rebuild);
+document.getElementById('includeAids').addEventListener('change',  rebuild);
+
+// Pinel controls
+document.getElementById('pinelEnabled').addEventListener('change', rebuild);
+document.getElementById('pinelInvest').addEventListener('input',   rebuild);
+document.getElementById('pinelDuration').addEventListener('change', rebuild);
+document.querySelectorAll('#pinelTypeToggle .toggle-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('#pinelTypeToggle .toggle-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    rebuild();
+  });
+});
 
 rebuild();

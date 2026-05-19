@@ -81,6 +81,15 @@ const CALC = (() => {
   const CF_PLAF_BASE_BI   = 54724;
   const CF_PLAF_STEP      = 7456;     // par enfant > 3
 
+  // ── Pinel / Pinel+ — réduction d'impôt ─────────────────────
+  // Taux de réduction sur le prix de revient, étalés sur la durée.
+  const PINEL_RATES = {
+    6:  { standard: 0.09, plus: 0.12 },
+    9:  { standard: 0.12, plus: 0.18 },
+    12: { standard: 0.14, plus: 0.21 },
+  };
+  const PINEL_MAX_INVEST = 300000; // plafond prix de revient (€)
+
   // ================================================================
   // COTISATIONS SALARIALES
   // ================================================================
@@ -280,6 +289,24 @@ const CALC = (() => {
   }
 
   // ================================================================
+  // RÉDUCTION D'IMPÔT PINEL
+  // ================================================================
+
+  /**
+   * Calcule la réduction annuelle Pinel (montant brut, avant plafonnement IR).
+   * @param {{ enabled: boolean, investment: number, duration: 6|9|12, type: 'standard'|'plus' }} pinel
+   * @returns {number} réduction annuelle (€)
+   */
+  function calcPinelReduction(pinel) {
+    if (!pinel?.enabled) return 0;
+    const invest = Math.min(pinel.investment || 0, PINEL_MAX_INVEST);
+    const rates  = PINEL_RATES[pinel.duration];
+    if (!rates) return 0;
+    const rate = pinel.type === 'plus' ? rates.plus : rates.standard;
+    return (invest * rate) / pinel.duration;
+  }
+
+  // ================================================================
   // CALCUL COMPLET
   // ================================================================
 
@@ -288,8 +315,9 @@ const CALC = (() => {
    * @param {{ adults: 1|2, isDualIncome: boolean, childrenAges: number[] }} family
    * @param {boolean} isCadre
    * @param {boolean} includeAids
+   * @param {{ enabled: boolean, investment: number, duration: number, type: string }} [pinel]
    */
-  function calculate(grossMonthly, family, isCadre, includeAids) {
+  function calculate(grossMonthly, family, isCadre, includeAids, pinel) {
     const { breakdown, totalCotisations, net, netImposable } =
       calcCotisations(grossMonthly, isCadre);
 
@@ -298,6 +326,13 @@ const CALC = (() => {
     const monthlyIR          = annualIR / 12;
     const annualNetImposable = netImposable * 12;
 
+    // Pinel : réduction d'impôt directe, plafonnée à l'IR dû
+    const pinelAnnual        = calcPinelReduction(pinel);
+    const pinelBenefitAnnual = Math.min(annualIR, pinelAnnual);
+    const pinelMonthly       = pinelBenefitAnnual / 12;
+    const effectiveAnnualIR  = annualIR - pinelBenefitAnnual;
+    const effectiveMonthlyIR = effectiveAnnualIR / 12;
+
     const { rsa, primeActivite } = calcIndividualAids(grossMonthly, net, includeAids);
     const af   = includeAids ? calcAF(family, annualNetImposable)   : 0;
     const paje = includeAids ? calcPAJE(family, annualNetImposable) : 0;
@@ -305,7 +340,7 @@ const CALC = (() => {
     const cf   = includeAids ? calcCF(family, annualNetImposable)   : 0;
 
     const aide  = rsa + primeActivite + af + paje + ars + cf;
-    const total = net - monthlyIR + aide;
+    const total = net - effectiveMonthlyIR + aide;
 
     const effectiveRate = annualNetImposable > 0 ? annualIR / annualNetImposable : 0;
     const marginalRate  = getMarginalRate(netImposable, nbParts);
@@ -313,6 +348,7 @@ const CALC = (() => {
     return {
       breakdown, totalCotisations, net, netImposable,
       nbParts, annualIR, monthlyIR, effectiveRate, marginalRate,
+      pinelAnnual, pinelBenefitAnnual, pinelMonthly, effectiveMonthlyIR,
       rsa, primeActivite, af, paje, ars, cf,
       aide, total,
     };
@@ -322,14 +358,14 @@ const CALC = (() => {
   // GÉNÉRATION DES DONNÉES POUR LE GRAPHIQUE
   // ================================================================
 
-  function generateChartPoints(family, isCadre, includeAids) {
+  function generateChartPoints(family, isCadre, includeAids, pinel) {
     const points = [];
     for (let gross = 0; gross <= MAX_GROSS; gross += STEP) {
-      const r = calculate(gross, family, isCadre, includeAids);
+      const r = calculate(gross, family, isCadre, includeAids, pinel);
       points.push({
         gross,
         net:        Math.round(r.net),
-        netAfterIR: Math.round(r.net - r.monthlyIR),
+        netAfterIR: Math.round(r.net - r.effectiveMonthlyIR),
         total:      Math.round(r.total),
       });
     }
@@ -341,6 +377,7 @@ const CALC = (() => {
     calculate,
     generateChartPoints,
     calcNbParts,
+    calcPinelReduction,
     MAX_GROSS, STEP, PMSS, SMIC_GROSS, SMIC_NET, IR_TRANCHES,
   };
 
