@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Calculateur de Revenus — France 2024</title>
+  <title>Calculateur de Revenus — France 2026</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -36,7 +36,7 @@
       margin-top: 4px;
     }
 
-    /* ─── Controls ────────────────────────────────────── */
+    /* ─── Controls ──────────────────────────────────── */
     .controls {
       display: flex;
       flex-wrap: wrap;
@@ -73,8 +73,9 @@
       background: white;
       outline: none;
       transition: border-color 0.15s;
-      min-width: 150px;
+      min-width: 160px;
       -moz-appearance: textfield;
+      appearance: textfield;
     }
 
     .field input[type="number"]::-webkit-inner-spin-button { opacity: 0.5; }
@@ -114,15 +115,15 @@
       padding-left: 26px;
     }
 
-    /* ─── Main grid ───────────────────────────────────── */
+    /* ─── Main grid ─────────────────────────────────── */
     .main {
       display: grid;
-      grid-template-columns: 1fr 300px;
+      grid-template-columns: 1fr 320px;
       gap: 20px;
       align-items: start;
     }
 
-    /* ─── Chart card ──────────────────────────────────── */
+    /* ─── Chart card ─────────────────────────────────── */
     .chart-card {
       background: white;
       border-radius: 14px;
@@ -135,6 +136,8 @@
       justify-content: space-between;
       align-items: flex-start;
       margin-bottom: 18px;
+      flex-wrap: wrap;
+      gap: 8px;
     }
 
     .chart-title {
@@ -176,12 +179,12 @@
       user-select: none;
     }
 
-    /* ─── Details panel ───────────────────────────────── */
+    /* ─── Details panel ──────────────────────────────── */
     .details-card {
       background: white;
       border-radius: 14px;
       box-shadow: 0 1px 4px rgba(0,0,0,0.07);
-      padding: 22px 24px;
+      padding: 22px 22px;
       position: sticky;
       top: 24px;
     }
@@ -190,11 +193,11 @@
       font-size: 15px;
       font-weight: 600;
       color: #374151;
-      margin-bottom: 18px;
+      margin-bottom: 16px;
     }
 
     .detail-row {
-      margin-bottom: 18px;
+      margin-bottom: 14px;
     }
 
     .detail-row label {
@@ -204,24 +207,47 @@
       color: #9ca3af;
       text-transform: uppercase;
       letter-spacing: 0.06em;
-      margin-bottom: 3px;
+      margin-bottom: 2px;
     }
 
     .detail-val {
-      font-size: 19px;
+      font-size: 18px;
       font-weight: 700;
       color: #111827;
-      transition: color 0.15s;
     }
 
     .detail-val.em-negative { color: #ef4444; }
     .detail-val.em-positive { color: #22c55e; }
-    .detail-val.em-total    { color: #6366f1; font-size: 22px; }
+    .detail-val.em-total    { color: #6366f1; font-size: 21px; }
+
+    .rate-row {
+      display: flex;
+      gap: 16px;
+      margin-bottom: 14px;
+    }
+
+    .rate-item { flex: 1; }
+
+    .rate-item label {
+      display: block;
+      font-size: 11px;
+      font-weight: 600;
+      color: #9ca3af;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 2px;
+    }
+
+    .rate-val {
+      font-size: 17px;
+      font-weight: 700;
+      color: #111827;
+    }
 
     .divider {
       height: 1px;
       background: #f3f4f6;
-      margin: 6px 0 18px;
+      margin: 4px 0 14px;
     }
 
     .placeholder {
@@ -230,7 +256,77 @@
       font-weight: 400;
     }
 
-    /* ─── SMIC marker tooltip ─────────────────────────── */
+    /* ─── Cotisations breakdown ──────────────────────── */
+    .cot-block { margin-bottom: 14px; }
+
+    .cot-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .cot-header-label {
+      font-size: 11px;
+      font-weight: 600;
+      color: #9ca3af;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .cot-chevron {
+      font-size: 9px;
+      color: #c4c9d4;
+      transition: transform 0.18s;
+    }
+
+    .cot-block.open .cot-chevron { transform: rotate(180deg); }
+
+    .cot-total {
+      font-size: 18px;
+      font-weight: 700;
+      color: #ef4444;
+    }
+
+    .cot-list {
+      display: none;
+      margin-top: 8px;
+      border-top: 1px solid #f3f4f6;
+      padding-top: 6px;
+    }
+
+    .cot-block.open .cot-list { display: block; }
+
+    .cot-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      padding: 4px 0;
+      font-size: 12px;
+    }
+
+    .cot-row-label { color: #6b7280; }
+
+    .cot-row-sub {
+      display: block;
+      font-size: 10px;
+      color: #9ca3af;
+      margin-top: 1px;
+    }
+
+    .cot-row-val {
+      font-weight: 600;
+      color: #f87171;
+      font-size: 12px;
+      flex-shrink: 0;
+      margin-left: 8px;
+    }
+
+    /* ─── SMIC badge ─────────────────────────────────── */
     .smic-badge {
       display: inline-block;
       font-size: 10px;
@@ -255,7 +351,9 @@
 
   <header>
     <h1>Calculateur de Revenus</h1>
-    <p class="subtitle">Simulation du revenu net total — France, barème 2024</p>
+    <p class="subtitle">
+      Simulation du revenu net total — France 2026 · PMSS 4 005 €
+    </p>
   </header>
 
   <div class="controls">
@@ -266,8 +364,8 @@
     <div class="field">
       <label>Statut</label>
       <select id="status">
-        <option value="salarie">Salarié</option>
-        <option value="fonctionnaire">Fonctionnaire</option>
+        <option value="cadre">Cadre</option>
+        <option value="non-cadre">Non-cadre</option>
       </select>
     </div>
     <div class="checkbox-wrap">
@@ -276,11 +374,12 @@
         <input type="checkbox" id="includeAids" checked>
         <label for="includeAids">Inclure les aides sociales</label>
       </div>
-      <div class="checkbox-hint">RSA &amp; Prime d'activité ajustés selon le salaire</div>
+      <div class="checkbox-hint">RSA &amp; Prime d'activité (barème avril 2026)</div>
     </div>
   </div>
 
   <div class="main">
+
     <!-- Chart -->
     <div class="chart-card">
       <div class="chart-header">
@@ -293,14 +392,30 @@
       <p class="hint">Survolez le graphique pour voir les détails</p>
     </div>
 
-    <!-- Details -->
+    <!-- Details panel -->
     <div class="details-card">
-      <div class="details-title">Détails <span id="grossBadge" class="smic-badge" style="display:none"></span></div>
+      <div class="details-title">
+        Détails
+        <span id="grossBadge" class="smic-badge" style="display:none"></span>
+      </div>
 
       <div class="detail-row">
         <label>Salaire brut mensuel</label>
         <div class="detail-val" id="dGross"><span class="placeholder">—</span></div>
       </div>
+
+      <!-- Cotisations (collapsible) -->
+      <div class="cot-block" id="cotBlock">
+        <div class="cot-header" id="cotToggle">
+          <div class="cot-header-label">
+            Cotisations salariales
+            <span class="cot-chevron" id="cotChevron">▼</span>
+          </div>
+          <div class="cot-total" id="dCot"><span class="placeholder">—</span></div>
+        </div>
+        <div class="cot-list" id="cotList"></div>
+      </div>
+
       <div class="detail-row">
         <label>Salaire net (après cotisations)</label>
         <div class="detail-val" id="dNet"><span class="placeholder">—</span></div>
@@ -312,13 +427,19 @@
         <label>Impôt sur le revenu (mensuel)</label>
         <div class="detail-val em-negative" id="dTax"><span class="placeholder">—</span></div>
       </div>
-      <div class="detail-row">
-        <label>Taux d'imposition effectif</label>
-        <div class="detail-val" id="dRate"><span class="placeholder">—</span></div>
+
+      <div class="rate-row">
+        <div class="rate-item">
+          <label>Taux effectif</label>
+          <div class="rate-val" id="dRateEff"><span class="placeholder">—</span></div>
+        </div>
+        <div class="rate-item">
+          <label>TMI</label>
+          <div class="rate-val" id="dRateTMI"><span class="placeholder">—</span></div>
+        </div>
       </div>
 
       <div class="divider" id="aidsDivider"></div>
-
       <div class="detail-row" id="aidsRow">
         <label>Total aides sociales (mensuel)</label>
         <div class="detail-val em-positive" id="dAids"><span class="placeholder">—</span></div>
@@ -331,353 +452,13 @@
         <div class="detail-val em-total" id="dTotal"><span class="placeholder">—</span></div>
       </div>
     </div>
-  </div>
 
+  </div>
 </div>
 
-<script>
-// ============================================================
-// CONSTANTS
-// ============================================================
-const MAX_GROSS = 6000;
-const STEP = 50;
-
-// SMIC 2024
-const SMIC_GROSS = 1766.92;
-const SMIC_NET   = 1376.79;
-
-// Gross-to-net ratios by status
-const NET_RATIO = { salarie: 0.775, fonctionnaire: 0.789 };
-
-// Prime d'activité 2024 (single person, 1 part)
-const MF_PA    = 622.66;
-const BONUS_PA = 133.69;
-
-// RSA 2024 (single person, forfait logement déduit)
-const RSA_MAX = 635.71;
-
-// IR barème 2025 (revenus 2024)
-const TRANCHES = [
-  { min: 0,      max: 11497,  rate: 0    },
-  { min: 11497,  max: 29315,  rate: 0.11 },
-  { min: 29315,  max: 83823,  rate: 0.30 },
-  { min: 83823,  max: 180294, rate: 0.41 },
-  { min: 180294, max: Infinity, rate: 0.45 },
-];
-
-// ============================================================
-// CALCULATIONS
-// ============================================================
-
-function netRatio(status) {
-  return NET_RATIO[status] ?? NET_RATIO.salarie;
-}
-
-/** Prime d'activité individual bonification (rises from 0 to BONUS_PA between 0.5*SMIC and SMIC) */
-function getBonification(net) {
-  if (net <= 0)           return 0;
-  if (net >= SMIC_NET)    return BONUS_PA;
-  if (net > SMIC_NET * 0.5) {
-    return BONUS_PA * (net - SMIC_NET * 0.5) / (SMIC_NET * 0.5);
-  }
-  return 0;
-}
-
-/** Social aids (RSA / Prime d'activité) for a single person */
-function calcAide(gross, net, includeAids) {
-  if (!includeAids) return 0;
-  if (gross <= 0) return RSA_MAX;
-  const bonus = getBonification(net);
-  // PA formula: MF + bonus + 61%×revenus_pro - ressources
-  // For single worker, ressources = net, so: MF + bonus - 39%×net
-  return Math.max(0, MF_PA + bonus - 0.39 * net);
-}
-
-/** Annual income tax with quotient familial */
-function calcAnnualTax(grossMonthly, nbParts) {
-  // Net imposable includes CSG non-déductible (~2.4% of 98.25% gross)
-  const netImposable = grossMonthly * 12 * 0.799; // gross × 0.775 net + 0.024 CSG non-ded
-  const abattement   = Math.min(14171, Math.max(504, netImposable * 0.10));
-  const taxable      = netImposable - abattement;
-  const perPart      = taxable / nbParts;
-
-  let taxPerPart = 0;
-  for (const t of TRANCHES) {
-    if (perPart > t.min) {
-      taxPerPart += (Math.min(perPart, t.max) - t.min) * t.rate;
-    }
-  }
-  return Math.max(0, taxPerPart * nbParts);
-}
-
-function calculate(grossMonthly, nbParts, status, includeAids) {
-  const ratio       = netRatio(status);
-  const net         = grossMonthly * ratio;
-  const annualTax   = calcAnnualTax(grossMonthly, nbParts);
-  const monthlyTax  = annualTax / 12;
-  const aide        = calcAide(grossMonthly, net, includeAids);
-  const total       = net - monthlyTax + aide;
-  const netImposable = grossMonthly * 12 * 0.799;
-  const effectiveRate = netImposable > 0 ? annualTax / netImposable : 0;
-
-  return { net, monthlyTax, effectiveRate, aide, total };
-}
-
-// ============================================================
-// DATA GENERATION
-// ============================================================
-
-function generateDatasets(nbParts, status, includeAids) {
-  const netData          = [];
-  const netAfterTaxData  = [];
-  const totalData        = [];
-
-  for (let gross = 0; gross <= MAX_GROSS; gross += STEP) {
-    const r = calculate(gross, nbParts, status, includeAids);
-    netData.push(         { x: gross, y: Math.round(r.net) });
-    netAfterTaxData.push( { x: gross, y: Math.round(r.net - r.monthlyTax) });
-    totalData.push(       { x: gross, y: Math.round(r.total) });
-  }
-
-  return [
-    {
-      label: 'Salaire net (cotisations)',
-      data: netData,
-      borderColor: '#d1d5db',
-      borderWidth: 1.5,
-      pointRadius: 0,
-      tension: 0.35,
-      fill: false,
-      order: 3,
-    },
-    {
-      label: 'Net après impôt',
-      data: netAfterTaxData,
-      borderColor: '#94a3b8',
-      borderWidth: 1.5,
-      pointRadius: 0,
-      tension: 0.35,
-      fill: false,
-      order: 2,
-    },
-    {
-      label: includeAids ? 'Revenu total (avec aides)' : 'Revenu total',
-      data: totalData,
-      borderColor: '#6366f1',
-      backgroundColor: 'rgba(99,102,241,0.06)',
-      borderWidth: 2.5,
-      pointRadius: 0,
-      tension: 0.35,
-      fill: true,
-      order: 1,
-    },
-  ];
-}
-
-// ============================================================
-// CROSSHAIR PLUGIN
-// ============================================================
-
-const crosshairPlugin = {
-  id: 'crosshair',
-  afterDraw(chart) {
-    if (chart._crosshairX == null) return;
-    const { ctx, chartArea } = chart;
-    ctx.save();
-    ctx.beginPath();
-    ctx.setLineDash([4, 4]);
-    ctx.moveTo(chart._crosshairX, chartArea.top);
-    ctx.lineTo(chart._crosshairX, chartArea.bottom);
-    ctx.strokeStyle = 'rgba(99,102,241,0.45)';
-    ctx.lineWidth = 1.5;
-    ctx.stroke();
-
-    // Dot on total line (dataset index 2)
-    const ds = chart.data.datasets[2];
-    if (ds && chart._crosshairGross != null) {
-      const idx   = Math.round(chart._crosshairGross / STEP);
-      const cIdx  = Math.max(0, Math.min(ds.data.length - 1, idx));
-      const yVal  = ds.data[cIdx].y;
-      const yPx   = chart.scales.y.getPixelForValue(yVal);
-      ctx.setLineDash([]);
-      ctx.beginPath();
-      ctx.arc(chart._crosshairX, yPx, 5, 0, Math.PI * 2);
-      ctx.fillStyle   = '#6366f1';
-      ctx.strokeStyle = 'white';
-      ctx.lineWidth   = 2;
-      ctx.fill();
-      ctx.stroke();
-    }
-    ctx.restore();
-  },
-};
-
-Chart.register(crosshairPlugin);
-
-// ============================================================
-// CHART INIT
-// ============================================================
-
-const canvas = document.getElementById('myChart');
-const ctx2d  = canvas.getContext('2d');
-
-const myChart = new Chart(ctx2d, {
-  type: 'line',
-  data: { datasets: generateDatasets(1, 'salarie', true) },
-  options: {
-    responsive: true,
-    maintainAspectRatio: false,
-    animation: { duration: 300 },
-    interaction: { mode: 'nearest', intersect: false },
-    plugins: {
-      legend: { display: false },
-      tooltip: { enabled: false },
-    },
-    scales: {
-      x: {
-        type: 'linear',
-        min: 0,
-        max: MAX_GROSS,
-        title: {
-          display: true,
-          text: 'Salaire brut mensuel (€)',
-          color: '#9ca3af',
-          font: { size: 12 },
-        },
-        ticks: {
-          callback: v => v.toLocaleString('fr-FR') + ' €',
-          color: '#9ca3af',
-          maxTicksLimit: 10,
-        },
-        grid: { color: '#f3f4f6' },
-        border: { color: '#e5e7eb' },
-      },
-      y: {
-        title: {
-          display: true,
-          text: 'Revenu mensuel (€)',
-          color: '#9ca3af',
-          font: { size: 12 },
-        },
-        ticks: {
-          callback: v => v.toLocaleString('fr-FR') + ' €',
-          color: '#9ca3af',
-        },
-        grid: { color: '#f3f4f6' },
-        border: { color: '#e5e7eb' },
-      },
-    },
-  },
-});
-
-// ─── Mouse events ─────────────────────────────────────────
-
-canvas.addEventListener('mousemove', (e) => {
-  const rect  = canvas.getBoundingClientRect();
-  const x     = e.clientX - rect.left;
-  const ca    = myChart.chartArea;
-
-  if (!ca) return;
-
-  if (x >= ca.left && x <= ca.right) {
-    const grossRaw    = myChart.scales.x.getValueForPixel(x);
-    const gross       = Math.max(0, Math.min(MAX_GROSS, grossRaw));
-    myChart._crosshairX     = x;
-    myChart._crosshairGross = gross;
-    updateDetails(gross);
-  } else {
-    myChart._crosshairX     = null;
-    myChart._crosshairGross = null;
-    clearDetails();
-  }
-  myChart.update('none');
-});
-
-canvas.addEventListener('mouseleave', () => {
-  myChart._crosshairX     = null;
-  myChart._crosshairGross = null;
-  myChart.update('none');
-  clearDetails();
-});
-
-// ============================================================
-// DETAILS PANEL
-// ============================================================
-
-function fmt(v) {
-  return Math.round(v).toLocaleString('fr-FR') + ' €';
-}
-
-function updateDetails(grossRaw) {
-  const gross      = Math.round(grossRaw / STEP) * STEP;
-  const nbParts    = Math.max(0.5, parseFloat(document.getElementById('nbParts').value) || 1);
-  const status     = document.getElementById('status').value;
-  const includeAids = document.getElementById('includeAids').checked;
-
-  const r = calculate(gross, nbParts, status, includeAids);
-
-  document.getElementById('dGross').textContent = fmt(gross);
-  document.getElementById('dNet').textContent   = fmt(r.net);
-  document.getElementById('dTax').textContent   = r.monthlyTax > 0.5 ? '−' + fmt(r.monthlyTax) : fmt(0);
-  document.getElementById('dRate').textContent  = (r.effectiveRate * 100).toFixed(1) + ' %';
-  document.getElementById('dAids').textContent  = r.aide > 0.5 ? '+' + fmt(r.aide) : fmt(0);
-  document.getElementById('dTotal').textContent = fmt(r.total);
-
-  // SMIC badge
-  const badge = document.getElementById('grossBadge');
-  if (Math.abs(gross - SMIC_GROSS) <= STEP / 2) {
-    badge.textContent = 'SMIC';
-    badge.style.display = 'inline-block';
-  } else {
-    badge.style.display = 'none';
-  }
-}
-
-function clearDetails() {
-  const ph = '<span class="placeholder">—</span>';
-  ['dGross','dNet','dTax','dRate','dAids','dTotal'].forEach(id => {
-    document.getElementById(id).innerHTML = ph;
-  });
-  document.getElementById('grossBadge').style.display = 'none';
-}
-
-// ============================================================
-// LEGEND + REBUILD
-// ============================================================
-
-function buildLegend(datasets) {
-  const el = document.getElementById('legend');
-  el.innerHTML = datasets.map(ds => `
-    <div class="legend-item">
-      <div class="legend-line" style="background:${ds.borderColor}"></div>
-      <span>${ds.label}</span>
-    </div>
-  `).join('');
-}
-
-function rebuild() {
-  const nbParts     = Math.max(0.5, parseFloat(document.getElementById('nbParts').value) || 1);
-  const status      = document.getElementById('status').value;
-  const includeAids = document.getElementById('includeAids').checked;
-
-  // Show/hide aids rows
-  const show = includeAids;
-  document.getElementById('aidsRow').style.display    = show ? '' : 'none';
-  document.getElementById('aidsDivider').style.display = show ? '' : 'none';
-
-  const datasets = generateDatasets(nbParts, status, includeAids);
-  myChart.data.datasets = datasets;
-  myChart.update();
-  buildLegend(datasets);
-}
-
-// ─── Event listeners ──────────────────────────────────────
-document.getElementById('nbParts').addEventListener('input', rebuild);
-document.getElementById('status').addEventListener('change', rebuild);
-document.getElementById('includeAids').addEventListener('change', rebuild);
-
-// ─── Init ─────────────────────────────────────────────────
-rebuild();
-</script>
+<!-- Business logic (no DOM) -->
+<script src="calculator.js"></script>
+<!-- UI layer (chart + DOM wiring) -->
+<script src="app.js"></script>
 </body>
 </html>
