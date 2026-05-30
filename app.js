@@ -79,9 +79,10 @@ function setFrozenUI(isFrozen) {
   }
   const hint = document.getElementById('chartHint');
   if (hint) {
+    const isTouch = navigator.maxTouchPoints > 0;
     hint.textContent = isFrozen
-      ? 'Figé · Cliquez pour dégeler'
-      : 'Survolez l\'un des graphiques · Cliquez pour figer les valeurs';
+      ? (isTouch ? 'Figé · Touchez pour dégeler' : 'Figé · Cliquez pour dégeler')
+      : (isTouch ? 'Glissez sur le graphique · Touchez pour figer' : 'Survolez l\'un des graphiques · Cliquez pour figer les valeurs');
     hint.style.color = isFrozen ? '#6366f1' : '';
     hint.style.fontWeight = isFrozen ? '600' : '';
   }
@@ -276,6 +277,58 @@ function attachMouseEvents(chart, toMonthlyGross) {
       setFrozenUI(true);
     }
   });
+
+  // ── Touch events (mobile) ──────────────────────────────────────
+  chart.canvas.addEventListener('touchstart', (e) => {
+    const touch = e.touches[0];
+    const rect  = chart.canvas.getBoundingClientRect();
+    const x     = touch.clientX - rect.left;
+    const ca    = chart.chartArea;
+    if (!ca || x < ca.left || x > ca.right) return;
+
+    e.preventDefault(); // block page scroll when starting inside plot area
+
+    if (frozen) {       // tap on frozen chart → unfreeze
+      frozen      = false;
+      frozenGross = null;
+      setFrozenUI(false);
+      return;
+    }
+    const gross = Math.max(0, Math.min(CALC.MAX_GROSS,
+      toMonthlyGross(chart.scales.x.getValueForPixel(x))));
+    syncCrosshairs(gross);
+    renderDetails(gross);
+  }, { passive: false });
+
+  chart.canvas.addEventListener('touchmove', (e) => {
+    if (frozen) return;
+    const touch = e.touches[0];
+    const rect  = chart.canvas.getBoundingClientRect();
+    const x     = touch.clientX - rect.left;
+    const ca    = chart.chartArea;
+    if (!ca || x < ca.left || x > ca.right) return;
+
+    e.preventDefault(); // block scroll while swiping on chart
+    const gross = Math.max(0, Math.min(CALC.MAX_GROSS,
+      toMonthlyGross(chart.scales.x.getValueForPixel(x))));
+    syncCrosshairs(gross);
+    renderDetails(gross);
+  }, { passive: false });
+
+  chart.canvas.addEventListener('touchend', (e) => {
+    if (frozen) return;
+    const touch = e.changedTouches[0];
+    const rect  = chart.canvas.getBoundingClientRect();
+    const x     = touch.clientX - rect.left;
+    const ca    = chart.chartArea;
+    if (!ca || x < ca.left || x > ca.right || monthlyChart._crosshairX == null) return;
+
+    frozen      = true;
+    frozenGross = Math.max(0, Math.min(CALC.MAX_GROSS,
+      toMonthlyGross(chart.scales.x.getValueForPixel(x))));
+    setFrozenUI(true);
+    e.preventDefault(); // block the synthetic click that follows touchend
+  }, { passive: false });
 }
 
 attachMouseEvents(monthlyChart, raw => raw);
