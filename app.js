@@ -400,6 +400,8 @@ function getInputs() {
     isCadre:     document.getElementById('status').value === 'cadre',
     includeAids: document.getElementById('includeAids').checked,
     pinel,
+    mortRate:    parseFloat(document.getElementById('mortRateSlider').value),
+    mortYears:   parseInt(document.getElementById('mortYearsSlider').value),
   };
 }
 
@@ -508,16 +510,59 @@ function renderDetails(grossRaw) {
   } else {
     badge.style.display = 'none';
   }
+
+  // ── Mortgage blocks ──────────────────────────────────────────────
+  const { mortRate, mortYears } = getInputs();
+  const netBeforeM = r.net;
+  const netAfterM  = r.net - r.effectiveMonthlyIR;
+  const loan       = MORT.maxLoan(netBeforeM * 12, mortRate, mortYears);
+  const s          = MORT.loanSummary(loan, mortRate, mortYears);
+
+  setText('dMortMax', fmtEur(loan));
+  setText('aMortMax', fmtEur(loan));
+
+  const remBeforeM = netBeforeM - s.monthly;
+  const remAfterM  = netAfterM  - s.monthly;
+
+  setHTML('mortMonthList', mortRows([
+    ['Mensualité',            fmtEur(s.monthly),                ''],
+    ['dont intérêts (moy.)',  fmtEur(s.avgMonthlyInterest),     'em-negative'],
+    ['Reste net avant IR',    fmtEur(remBeforeM),               remBeforeM >= 0 ? 'em-positive' : 'em-negative'],
+    ['Reste net après IR',    fmtEur(remAfterM),                remAfterM  >= 0 ? 'em-positive' : 'em-negative'],
+    ['Total intérêts',        fmtEur(s.totalInterest),          'em-negative'],
+    ['Total remboursé',       fmtEur(s.totalRepaid),            ''],
+  ]));
+
+  setHTML('mortAnnualList', mortRows([
+    ['Mensualités / an',        fmtEur(s.monthly * 12),             ''],
+    ['dont intérêts / an',      fmtEur(s.avgMonthlyInterest * 12),  'em-negative'],
+    ['Reste net avant IR / an', fmtEur(remBeforeM * 12),            remBeforeM >= 0 ? 'em-positive' : 'em-negative'],
+    ['Reste net après IR / an', fmtEur(remAfterM  * 12),            remAfterM  >= 0 ? 'em-positive' : 'em-negative'],
+    ['Total intérêts',          fmtEur(s.totalInterest),            'em-negative'],
+    ['Total remboursé',         fmtEur(s.totalRepaid),              ''],
+  ]));
 }
 
 function clearDetails() {
   const ph = placeholder();
   ['dGross','dCot','dNet','dNetImposable','dTax','dRateEff','dRateTMI','dAids','dPinel','dTotal',
-   'aGross','aCot','aNet','aNetImposable','aTax','aRateEff','aAids','aPinel','aTotal']
+   'aGross','aCot','aNet','aNetImposable','aTax','aRateEff','aAids','aPinel','aTotal',
+   'dMortMax','aMortMax']
     .forEach(id => { const el = document.getElementById(id); if (el) setHTML(id, ph); });
-  document.getElementById('cotList').innerHTML  = '';
-  document.getElementById('aidsList').innerHTML = '';
+  document.getElementById('cotList').innerHTML      = '';
+  document.getElementById('aidsList').innerHTML     = '';
+  document.getElementById('mortMonthList').innerHTML  = '';
+  document.getElementById('mortAnnualList').innerHTML = '';
   document.getElementById('grossBadge').style.display = 'none';
+}
+
+function mortRows(rows) {
+  return rows.map(([label, val, cls]) =>
+    `<div class="cot-row">
+       <span class="cot-row-label">${label}</span>
+       <span class="cot-row-val${cls ? ' ' + cls : ''}" style="${cls ? '' : 'color:#374151'}">${val}</span>
+     </div>`
+  ).join('');
 }
 
 function setText(id, v) { document.getElementById(id).textContent = v; }
@@ -607,6 +652,27 @@ document.querySelectorAll('#pinelTypeToggle .toggle-btn').forEach(btn => {
     btn.classList.add('active');
     rebuild();
   });
+});
+
+// Mortgage controls
+document.getElementById('mortRateSlider').addEventListener('input', () => {
+  const v = parseFloat(document.getElementById('mortRateSlider').value);
+  document.getElementById('mortRateDisplay').textContent = v.toFixed(1) + ' %';
+  if (frozen && frozenGross != null) renderDetails(frozenGross);
+});
+
+document.getElementById('mortYearsSlider').addEventListener('input', () => {
+  const v = parseInt(document.getElementById('mortYearsSlider').value);
+  document.getElementById('mortYearsDisplay').textContent = v + ' ans';
+  if (frozen && frozenGross != null) renderDetails(frozenGross);
+});
+
+document.getElementById('mortMonthToggle').addEventListener('click', () => {
+  document.getElementById('mortMonthBlock').classList.toggle('open');
+});
+
+document.getElementById('mortAnnualToggle').addEventListener('click', () => {
+  document.getElementById('mortAnnualBlock').classList.toggle('open');
 });
 
 rebuild();

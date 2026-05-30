@@ -418,6 +418,27 @@
       .chart-row { grid-template-columns: 1fr; }
       .details-card { position: static; }
     }
+
+    /* ─── Range sliders (mortgage controls) ──────────── */
+    input[type="range"] {
+      -webkit-appearance: none; appearance: none;
+      height: 4px; background: #e5e7eb; border-radius: 2px;
+      outline: none; cursor: pointer; min-width: 120px;
+      accent-color: #6366f1;
+    }
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none; appearance: none;
+      width: 15px; height: 15px; border-radius: 50%;
+      background: #6366f1; cursor: pointer;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.25);
+    }
+    input[type="range"]::-moz-range-thumb {
+      width: 15px; height: 15px; border-radius: 50%;
+      background: #6366f1; cursor: pointer; border: none;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.25);
+    }
+    .slider-row { display: flex; align-items: center; gap: 10px; }
+    .slider-val { font-size: 15px; font-weight: 700; color: #111827; min-width: 54px; text-align: right; }
   </style>
 </head>
 <body>
@@ -523,6 +544,27 @@
       </div>
     </div>
 
+    <!-- Séparateur prêt -->
+    <div style="width:100%;height:0;border-top:1px solid #f3f4f6;margin:4px 0;flex-basis:100%"></div>
+
+    <!-- Taux d'intérêt prêt -->
+    <div class="field">
+      <label>Taux prêt</label>
+      <div class="slider-row">
+        <input type="range" id="mortRateSlider" min="1.0" max="7.0" step="0.1" value="3.5">
+        <span class="slider-val" id="mortRateDisplay">3.5 %</span>
+      </div>
+    </div>
+
+    <!-- Durée prêt -->
+    <div class="field">
+      <label>Durée prêt</label>
+      <div class="slider-row">
+        <input type="range" id="mortYearsSlider" min="5" max="30" step="1" value="20">
+        <span class="slider-val" id="mortYearsDisplay">20 ans</span>
+      </div>
+    </div>
+
   </div>
 
   <div class="main">
@@ -620,6 +662,19 @@
           <label>Revenu total</label>
           <div class="detail-val em-total" id="dTotal"><span class="placeholder">—</span></div>
         </div>
+
+        <div class="divider"></div>
+
+        <div class="cot-block" id="mortMonthBlock">
+          <div class="cot-header" id="mortMonthToggle">
+            <div class="cot-header-label">
+              Prêt immobilier
+              <span class="cot-chevron">▼</span>
+            </div>
+            <div style="font-size:15px;font-weight:700;color:#6366f1" id="dMortMax"><span class="placeholder">—</span></div>
+          </div>
+          <div class="cot-list" id="mortMonthList"></div>
+        </div>
       </div>
 
     </div>
@@ -692,6 +747,19 @@
           <label>Revenu total</label>
           <div class="detail-val em-total" id="aTotal"><span class="placeholder">—</span></div>
         </div>
+
+        <div class="divider"></div>
+
+        <div class="cot-block" id="mortAnnualBlock">
+          <div class="cot-header" id="mortAnnualToggle">
+            <div class="cot-header-label">
+              Prêt immobilier
+              <span class="cot-chevron">▼</span>
+            </div>
+            <div style="font-size:15px;font-weight:700;color:#6366f1" id="aMortMax"><span class="placeholder">—</span></div>
+          </div>
+          <div class="cot-list" id="mortAnnualList"></div>
+        </div>
       </div>
 
     </div>
@@ -701,6 +769,8 @@
 
 <!-- Business logic (no DOM) -->
 <script src="calculator.js"></script>
+<!-- Mortgage math -->
+<script src="mortgage.js"></script>
 <!-- UI layer (charts + DOM wiring) -->
 <script src="app.js"></script>
 </body>
