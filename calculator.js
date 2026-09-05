@@ -15,7 +15,7 @@
 const CALC = (() => {
 
   // ── Chart range ─────────────────────────────────────────────
-  const MAX_GROSS = 15000;
+  const MAX_GROSS = 25000;
   const STEP      = 50;
 
   // ── Plafond de la Sécurité Sociale 2026 ─────────────────────
