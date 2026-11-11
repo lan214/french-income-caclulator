@@ -111,7 +111,10 @@ const crosshairPlugin = {
     const ds = chart.data.datasets[2];
     if (ds && chart._crosshairIdx != null) {
       const cIdx = Math.max(0, Math.min(ds.data.length - 1, chart._crosshairIdx));
-      const yPx  = chart.scales.y.getPixelForValue(ds.data[cIdx].y);
+      const lo = Math.floor(cIdx);
+      const hi = Math.min(lo + 1, ds.data.length - 1);
+      const y = ds.data[lo].y + (ds.data[hi].y - ds.data[lo].y) * (cIdx - lo);
+      const yPx = chart.scales.y.getPixelForValue(y);
       ctx.setLineDash([]);
       ctx.beginPath();
       ctx.arc(chart._crosshairX, yPx, frozen ? 7 : 5, 0, Math.PI * 2);
@@ -201,7 +204,8 @@ const annualChart = new Chart(
 // ================================================================
 
 function syncCrosshairs(monthlyGross) {
-  const idx = Math.round(monthlyGross / CALC.STEP);
+  monthlyGross = snapIncome(monthlyGross);
+  const idx = monthlyGross / CALC.STEP;
 
   if (monthlyChart.chartArea) {
     monthlyChart._crosshairX   = monthlyChart.scales.x.getPixelForValue(monthlyGross);
@@ -228,7 +232,57 @@ function clearCrosshairs() {
 // MOUSE EVENTS
 // ================================================================
 
+// Integrate relative movement so changing speed never repositions the selection.
+// Slow movement changes €10 per px; deliberate fast swipes reach €100 per 8 px.
+function snapIncome(income) {
+  return Math.floor(Math.max(0, Math.min(CALC.MAX_GROSS, income)) / 10) * 10;
+}
+
+function advanceIncomeSwipe(state, x, time, maxIncome) {
+  const dx = x - state.x;
+  const dt = Math.max(1, time - state.time);
+  const speed = Math.abs(dx) / dt;
+  // Return to precision quickly when slowing down; accelerate more gradually.
+  const alpha = 1 - Math.exp(-dt / (speed < state.speed ? 30 : 120));
+  const previousSpeed = state.speed;
+  state.speed += (speed - state.speed) * alpha;
+  const gain = velocity => {
+    const t = Math.max(0, Math.min(1, (velocity - 0.35) / 1.45));
+    return 10 + 2.5 * t * t * (3 - 2 * t);
+  };
+  state.income = Math.max(0, Math.min(maxIncome,
+    state.income + dx * (gain(previousSpeed) + gain(state.speed)) / 2));
+  state.x = x;
+  state.time = time;
+  return snapIncome(state.income);
+}
+
+function advanceIncomeHover(state, x, time, pointedIncome) {
+  const dx = x - state.x;
+  const dt = Math.max(1, time - state.time);
+  const speed = Math.abs(dx) / dt;
+  // Anchor fine adjustment when movement slows down, and keep it local.
+  if (state.precisionAnchorX == null && state.precisionArmed && dx !== 0 && speed <= 0.25) {
+    state.precisionAnchorX = state.x;
+  }
+  if (state.precisionAnchorX != null && Math.abs(x - state.precisionAnchorX) > 30) {
+    state.precisionAnchorX = null;
+    // A slow exit must not immediately start another precision window.
+    state.precisionArmed = false;
+  }
+  if (state.precisionAnchorX != null) {
+    state.income = Math.max(0, Math.min(CALC.MAX_GROSS, state.income + dx * 10));
+  } else {
+    state.income = snapIncome(pointedIncome);
+    if (speed > 0.25) state.precisionArmed = true;
+  }
+  state.x = x;
+  state.time = time;
+  return snapIncome(state.income);
+}
+
 function attachMouseEvents(chart, toMonthlyGross) {
+  let mouse = null;
   chart.canvas.addEventListener('mousemove', (e) => {
     if (frozen) return;
     const rect = chart.canvas.getBoundingClientRect();
@@ -238,11 +292,18 @@ function attachMouseEvents(chart, toMonthlyGross) {
 
     if (x >= ca.left && x <= ca.right) {
       chart.canvas.style.cursor = 'crosshair';
-      const raw          = chart.scales.x.getValueForPixel(x);
-      const monthlyGross = Math.max(0, Math.min(CALC.MAX_GROSS, toMonthlyGross(raw)));
+      if (!mouse) {
+        mouse = {
+          x, time: e.timeStamp, precisionArmed: true,
+          income: snapIncome(toMonthlyGross(chart.scales.x.getValueForPixel(x))),
+        };
+      }
+      const monthlyGross = advanceIncomeHover(mouse, x, e.timeStamp,
+        toMonthlyGross(chart.scales.x.getValueForPixel(x)));
       syncCrosshairs(monthlyGross);
       renderDetails(monthlyGross);
     } else {
+      mouse = null;
       chart.canvas.style.cursor = '';
       clearCrosshairs();
       clearDetails();
@@ -250,6 +311,7 @@ function attachMouseEvents(chart, toMonthlyGross) {
   });
 
   chart.canvas.addEventListener('mouseleave', () => {
+    mouse = null;
     if (frozen) return;
     chart.canvas.style.cursor = '';
     clearCrosshairs();
@@ -263,6 +325,7 @@ function attachMouseEvents(chart, toMonthlyGross) {
     if (!ca) return;
 
     if (frozen) {
+      mouse = { x, time: e.timeStamp, precisionArmed: true, income: frozenGross };
       frozen      = false;
       frozenGross = null;
       setFrozenUI(false);
@@ -273,13 +336,15 @@ function attachMouseEvents(chart, toMonthlyGross) {
       }
     } else if (x >= ca.left && x <= ca.right && monthlyChart._crosshairX != null) {
       frozen      = true;
-      frozenGross = Math.max(0, Math.min(CALC.MAX_GROSS, toMonthlyGross(chart.scales.x.getValueForPixel(x))));
+      frozenGross = snapIncome(mouse ? mouse.income : toMonthlyGross(chart.scales.x.getValueForPixel(x)));
       setFrozenUI(true);
     }
   });
 
   // ── Touch events (mobile) ──────────────────────────────────────
+  let swipe = null;
   chart.canvas.addEventListener('touchstart', (e) => {
+    if (swipe || e.touches.length !== 1) return;
     const touch = e.touches[0];
     const rect  = chart.canvas.getBoundingClientRect();
     const x     = touch.clientX - rect.left;
@@ -288,47 +353,52 @@ function attachMouseEvents(chart, toMonthlyGross) {
 
     e.preventDefault(); // block page scroll when starting inside plot area
 
-    if (frozen) {       // tap on frozen chart → unfreeze
-      frozen      = false;
-      frozenGross = null;
-      setFrozenUI(false);
-      return;
-    }
-    const gross = Math.max(0, Math.min(CALC.MAX_GROSS,
-      toMonthlyGross(chart.scales.x.getValueForPixel(x))));
+    const income = frozen && frozenGross != null
+      ? frozenGross
+      : toMonthlyGross(chart.scales.x.getValueForPixel(x));
+    swipe = {
+      id: touch.identifier, x, startX: x, time: e.timeStamp, speed: 0,
+      income: snapIncome(income),
+      wasFrozen: frozen, moved: false,
+    };
+    frozen = false;
+    frozenGross = null;
+    setFrozenUI(false);
+    const gross = snapIncome(swipe.income);
     syncCrosshairs(gross);
     renderDetails(gross);
   }, { passive: false });
 
   chart.canvas.addEventListener('touchmove', (e) => {
-    if (frozen) return;
-    const touch = e.touches[0];
+    if (!swipe) return;
+    const touch = Array.from(e.touches).find(t => t.identifier === swipe.id);
+    if (!touch) return;
     const rect  = chart.canvas.getBoundingClientRect();
     const x     = touch.clientX - rect.left;
-    const ca    = chart.chartArea;
-    if (!ca || x < ca.left || x > ca.right) return;
-
     e.preventDefault(); // block scroll while swiping on chart
-    const gross = Math.max(0, Math.min(CALC.MAX_GROSS,
-      toMonthlyGross(chart.scales.x.getValueForPixel(x))));
+    if (!swipe.moved && Math.abs(x - swipe.startX) < 3) return;
+    swipe.moved = true;
+    const gross = advanceIncomeSwipe(swipe, x, e.timeStamp, CALC.MAX_GROSS);
     syncCrosshairs(gross);
     renderDetails(gross);
   }, { passive: false });
 
   chart.canvas.addEventListener('touchend', (e) => {
-    if (frozen) return;
-    const touch = e.changedTouches[0];
-    const rect  = chart.canvas.getBoundingClientRect();
-    const x     = touch.clientX - rect.left;
-    const ca    = chart.chartArea;
-    if (!ca || x < ca.left || x > ca.right || monthlyChart._crosshairX == null) return;
-
-    frozen      = true;
-    frozenGross = Math.max(0, Math.min(CALC.MAX_GROSS,
-      toMonthlyGross(chart.scales.x.getValueForPixel(x))));
-    setFrozenUI(true);
+    if (!swipe || !Array.from(e.changedTouches).some(t => t.identifier === swipe.id)) return;
+    frozen = !(swipe.wasFrozen && !swipe.moved);
+    frozenGross = frozen ? snapIncome(swipe.income) : null;
+    swipe = null;
+    setFrozenUI(frozen);
     e.preventDefault(); // block the synthetic click that follows touchend
   }, { passive: false });
+
+  chart.canvas.addEventListener('touchcancel', () => {
+    if (!swipe) return;
+    frozen = true;
+    frozenGross = snapIncome(swipe.income);
+    swipe = null;
+    setFrozenUI(true);
+  });
 }
 
 attachMouseEvents(monthlyChart, raw => raw);
@@ -407,7 +477,7 @@ function getInputs() {
 
 // ── Render both panels ──────────────────────────────────────────
 function renderDetails(grossRaw) {
-  const gross = Math.round(grossRaw / CALC.STEP) * CALC.STEP;
+  const gross = snapIncome(grossRaw);
   const { family, isCadre, includeAids, pinel } = getInputs();
   const r = CALC.calculate(gross, family, isCadre, includeAids, pinel);
   const b = r.breakdown;
