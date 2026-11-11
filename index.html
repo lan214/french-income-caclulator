@@ -249,6 +249,28 @@
       color: #111827;
     }
 
+    .gross-editor [hidden] { display: none; }
+
+    .gross-display, .gross-input {
+      box-sizing: border-box;
+      width: 100%;
+      padding: 0;
+      border: 0;
+      background: transparent;
+      font: inherit;
+      font-size: 17px;
+      font-weight: 700;
+      line-height: 26px;
+      text-align: left;
+      color: #111827;
+    }
+
+    .gross-display { cursor: text; }
+    .gross-display:hover { color: #6366f1; }
+    .gross-display:focus-visible { outline: 2px solid #6366f1; outline-offset: 2px; }
+    .gross-input::placeholder { color: #9ca3af; font-size: 13px; font-weight: 400; }
+    .gross-input:focus { outline: none; box-shadow: 0 1px 0 #6366f1; }
+
     .detail-val.em-negative { color: #ef4444; }
     .detail-val.em-positive { color: #22c55e; }
     .detail-val.em-total    { color: #6366f1; font-size: 19px; }
@@ -592,8 +614,11 @@
         </div>
 
         <div class="detail-row">
-          <label>Salaire brut</label>
-          <div class="detail-val" id="dGross"><span class="placeholder">—</span></div>
+          <label for="dGross">Salaire brut mensuel (€)</label>
+          <div class="gross-editor">
+            <button class="gross-display" id="dGrossDisplay" type="button" aria-label="Modifier le salaire brut mensuel" title="Cliquer pour modifier">—</button>
+            <input class="gross-input" id="dGross" type="number" min="0" step="any" inputmode="decimal" placeholder="Saisir un montant" hidden>
+          </div>
         </div>
 
         <div class="cot-block" id="cotBlock">
@@ -699,8 +724,11 @@
         </div>
 
         <div class="detail-row">
-          <label>Salaire brut</label>
-          <div class="detail-val" id="aGross"><span class="placeholder">—</span></div>
+          <label for="aGross">Salaire brut annuel (€)</label>
+          <div class="gross-editor">
+            <button class="gross-display" id="aGrossDisplay" type="button" aria-label="Modifier le salaire brut annuel" title="Cliquer pour modifier">—</button>
+            <input class="gross-input" id="aGross" type="number" min="0" step="any" inputmode="decimal" placeholder="Saisir un montant" hidden>
+          </div>
         </div>
 
         <div class="detail-row">
