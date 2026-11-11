@@ -204,7 +204,7 @@ const annualChart = new Chart(
 // ================================================================
 
 function syncCrosshairs(monthlyGross) {
-  monthlyGross = snapIncome(monthlyGross);
+  monthlyGross = Math.max(0, Math.min(CALC.MAX_GROSS, monthlyGross));
   const idx = monthlyGross / CALC.STEP;
 
   if (monthlyChart.chartArea) {
@@ -476,14 +476,25 @@ function getInputs() {
 }
 
 // ── Render both panels ──────────────────────────────────────────
+function updateGrossInputs(gross) {
+  for (const [id, multiplier] of [['dGross', 1], ['aGross', 12]]) {
+    const input = document.getElementById(id);
+    document.getElementById(id + 'Display').textContent = gross == null ? '—' : fmtEur(gross * multiplier);
+    // Preserve the value and caret while the user is typing.
+    if (document.activeElement !== input) {
+      input.value = gross == null ? '' : String(Number((gross * multiplier).toFixed(2)));
+    }
+  }
+}
+
 function renderDetails(grossRaw) {
-  const gross = snapIncome(grossRaw);
+  const gross = Math.max(0, Math.min(CALC.MAX_GROSS, grossRaw));
   const { family, isCadre, includeAids, pinel } = getInputs();
   const r = CALC.calculate(gross, family, isCadre, includeAids, pinel);
   const b = r.breakdown;
 
   // ── RIGHT panel — monthly ───────────────────────────────────
-  setText('dGross',        fmtEur(gross));
+  updateGrossInputs(gross);
   setText('dCot',          '−' + fmtEur(r.totalCotisations));
   setText('dNet',          fmtEur(r.net));
   setText('dNetImposable', fmtEur(r.netImposable));
@@ -558,7 +569,6 @@ function renderDetails(grossRaw) {
     `).join('');
 
   // ── LEFT panel — annual ─────────────────────────────────────
-  setText('aGross',        fmtEur(gross * 12));
   setText('aCot',          '−' + fmtEur(r.totalCotisations * 12));
   setText('aNet',          fmtEur(r.net * 12));
   setText('aNetImposable', fmtEur(r.netImposable * 12));
@@ -615,8 +625,9 @@ function renderDetails(grossRaw) {
 
 function clearDetails() {
   const ph = placeholder();
-  ['dGross','dCot','dNet','dNetImposable','dTax','dRateEff','dRateTMI','dAids','dPinel','dTotal',
-   'aGross','aCot','aNet','aNetImposable','aTax','aRateEff','aAids','aPinel','aTotal',
+  updateGrossInputs(null);
+  ['dCot','dNet','dNetImposable','dTax','dRateEff','dRateTMI','dAids','dPinel','dTotal',
+   'aCot','aNet','aNetImposable','aTax','aRateEff','aAids','aPinel','aTotal',
    'dMortMax','aMortMax']
     .forEach(id => { const el = document.getElementById(id); if (el) setHTML(id, ph); });
   document.getElementById('cotList').innerHTML      = '';
@@ -688,6 +699,38 @@ function rebuild() {
 // ================================================================
 // EVENT LISTENERS + BOOT
 // ================================================================
+
+for (const [id, divisor] of [['dGross', 1], ['aGross', 12]]) {
+  const input = document.getElementById(id);
+  const display = document.getElementById(id + 'Display');
+  input.max = CALC.MAX_GROSS * divisor;
+  const selectInputIncome = () => {
+    if (input.value === '' || !Number.isFinite(input.valueAsNumber)) return;
+    frozenGross = Math.max(0, Math.min(CALC.MAX_GROSS, input.valueAsNumber / divisor));
+    const wasFrozen = frozen;
+    frozen = true;
+    syncCrosshairs(frozenGross);
+    renderDetails(frozenGross);
+    if (!wasFrozen) setFrozenUI(true);
+  };
+  display.addEventListener('click', () => {
+    // Keep the visible selection fixed while editing, even before typing.
+    if (!frozen) selectInputIncome();
+    display.hidden = true;
+    input.hidden = false;
+    input.focus();
+    input.select();
+  });
+  input.addEventListener('input', selectInputIncome);
+  input.addEventListener('blur', () => {
+    updateGrossInputs(frozen ? frozenGross : null);
+    input.hidden = true;
+    display.hidden = false;
+  });
+  input.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') input.blur();
+  });
+}
 
 // Adults toggle
 document.querySelectorAll('#adultsToggle .toggle-btn').forEach(btn => {
