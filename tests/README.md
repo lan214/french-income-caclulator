@@ -40,3 +40,12 @@ Couples represent married/PACS joint filers. The UI exposes the gross split for
 two earners; one-earner couples and individuals retain the previous gross meaning.
 Both earners use the selected employment status. Family benefits retain the
 existing simplified formulas; this change does not make those full CAF estimates.
+
+## England
+
+`england-calculator.test.cjs` tests the independent `ENGLAND_CALC` engine for the
+2026/27 UK tax year. `england-ui.test.cjs` loads the real HTML and scripts with
+DOM/Chart boundary doubles to check pounds, exact entry, scheme switching and
+mouse/touch selection. See [research notes](../docs/england-tax-2026-27.md) for official
+sources, payroll timing, benefit assumptions and worked examples. The French
+tests above continue to run unchanged.
