@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Income Calculator — England 2026/27</title>
+<link rel="stylesheet" href="styles.css"><script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script></head>
+<body class="england-page"><div class="app">
+<nav class="country-tabs" aria-label="Calculator country"><a href="index.html" lang="fr">France · €</a><a href="england.html" aria-current="page">England · £</a></nav>
+<header><h1>Income Calculator</h1><p class="subtitle">England · Tax year 2026/27 · 6 April 2026 – 5 April 2027 · Pounds sterling</p></header>
+<p class="scope-note">Employment income for adults aged 18–65, with steady monthly pay. Individual taxes, household support. Scotland has different Income Tax bands. <a href="#en-methodology">Scope & official sources</a>.</p>
+<div class="controls" id="en-controls">
+<div class="field"><label for="en-adults">Household</label><select id="en-adults"><option value="1">One adult</option><option value="2">Couple living together</option></select></div>
+<div class="field" id="en-share-field" hidden><label for="en-share">Adult 1 share of gross (%)</label><input id="en-share" type="number" value="50" min="0" max="100" step="1"></div>
+<div class="field"><label for="en-child-count">Dependent children</label><input id="en-child-count" type="number" value="0" min="0" max="10" step="1"></div>
+<div class="field"><label for="en-support-mode">Support to estimate</label><select id="en-support-mode"><option value="uc">Universal Credit + Child Benefit</option><option value="tfc">Tax-Free Childcare + Child Benefit</option><option value="none">Child Benefit only</option></select></div>
+<div><div class="checkbox-row"><input id="en-support" type="checkbox" checked><label for="en-support">Include government support</label></div></div>
+</div>
+<div id="en-children"></div>
+<details class="england-settings"><summary>Tax, pension, childcare & benefit settings</summary>
+<div class="settings-grid"><fieldset id="en-adult-0" ><legend>Adult 1</legend>
+    <div class="field"><label for="en-age-0">Age (18–65)</label><input id="en-age-0" type="number" value="30" min="18" max="65" step="1"></div>
+    <div class="field"><label for="en-pension-0">Salary-sacrifice pension (%)</label><input id="en-pension-0" type="number" value="0" min="0" max="100" step="0.5"></div>
+    <div class="field-help">Salary sacrifice only. Your employer must preserve minimum-wage pay; pension allowance charges are not included.</div>
+    <div class="field"><label for="en-loan-0">Student loan</label><select id="en-loan-0"><option value="none">None</option><option value="1">Plan 1</option><option value="2">Plan 2</option><option value="4">Plan 4</option><option value="5">Plan 5</option></select></div>
+    <div class="checkbox-row"><input id="en-pg-0" type="checkbox" ><label for="en-pg-0">Also repay a postgraduate loan</label></div>
+    <div class="field"><label for="en-capability-0">DWP work-capability decision</label><select id="en-capability-0"><option value="none">None</option><option value="lcw">LCW (work allowance only)</option><option value="new">LCWRA — new £217.26 rate</option><option value="protected">LCWRA — protected £429.80 rate</option></select></div>
+    <div class="checkbox-row"><input id="en-carer-0" type="checkbox" ><label for="en-carer-0">Qualifies for UC carer element (35+ hours)</label></div>
+    <div class="field-help">Use confirmed eligibility. Two carers must care for different qualifying people.</div></fieldset><fieldset id="en-adult-1" hidden><legend>Adult 2</legend>
+    <div class="field"><label for="en-age-1">Age (18–65)</label><input id="en-age-1" type="number" value="30" min="18" max="65" step="1"></div>
+    <div class="field"><label for="en-pension-1">Salary-sacrifice pension (%)</label><input id="en-pension-1" type="number" value="0" min="0" max="100" step="0.5"></div>
+    <div class="field-help">Salary sacrifice only. Your employer must preserve minimum-wage pay; pension allowance charges are not included.</div>
+    <div class="field"><label for="en-loan-1">Student loan</label><select id="en-loan-1"><option value="none">None</option><option value="1">Plan 1</option><option value="2">Plan 2</option><option value="4">Plan 4</option><option value="5">Plan 5</option></select></div>
+    <div class="checkbox-row"><input id="en-pg-1" type="checkbox" ><label for="en-pg-1">Also repay a postgraduate loan</label></div>
+    <div class="field"><label for="en-capability-1">DWP work-capability decision</label><select id="en-capability-1"><option value="none">None</option><option value="lcw">LCW (work allowance only)</option><option value="new">LCWRA — new £217.26 rate</option><option value="protected">LCWRA — protected £429.80 rate</option></select></div>
+    <div class="checkbox-row"><input id="en-carer-1" type="checkbox" ><label for="en-carer-1">Qualifies for UC carer element (35+ hours)</label></div>
+    <div class="field-help">Use confirmed eligibility. Two carers must care for different qualifying people.</div></fieldset>
+<fieldset><legend>Household support</legend>
+<div class="field"><label for="en-capital">Savings / capital counted by UC (£)</label><input id="en-capital" type="number" value="0" min="0" step="100"></div>
+<div class="field"><label for="en-housing">Eligible UC housing element (£/month)</label><input id="en-housing" type="number" value="0" min="0" step="1"></div>
+<div class="field-help">Enter your eligible amount after rent limits, bedroom rules and non-dependant deductions. This is not automatically your full rent.</div>
+<div class="checkbox-row"><input id="en-london" type="checkbox" ><label for="en-london">Live in Greater London</label></div>
+<div class="checkbox-row"><input id="en-claim-cb" type="checkbox" checked><label for="en-claim-cb">Claim Child Benefit payments</label></div>
+<div class="checkbox-row"><input id="en-cap-exempt" type="checkbox" ><label for="en-cap-exempt">Benefit-cap exempt: qualifying PIP / DLA / other award</label></div>
+<div class="checkbox-row"><input id="en-cap-grace" type="checkbox" ><label for="en-cap-grace">DWP-confirmed nine-month benefit-cap grace period</label></div>
+<div id="en-marriage-fields" hidden><div class="checkbox-row"><input id="en-married" type="checkbox" ><label for="en-married">Married / civil partners</label></div><div class="checkbox-row"><input id="en-marriage" type="checkbox" ><label for="en-marriage">Claim Marriage Allowance transfer if eligible</label></div></div>
+<div class="field"><label for="en-date">Household assessment date</label><input id="en-date" type="date" value="2026-11-19" min="2026-04-06" max="2027-04-05"></div>
+<div class="field-help">Benefit eligibility, residence and access to public funds are assumed. No sanctions, other income or managed-migration protection.</div>
+</fieldset>
+<fieldset><legend>Mortgage illustration</legend>
+<div class="field"><label for="en-multiple">Gross annual income multiple</label><input id="en-multiple" type="number" value="4.5" min="0" max="8" step="0.1"></div>
+<div class="field"><label for="en-mort-rate">Interest rate (%)</label><input id="en-mort-rate" type="number" value="4.5" min="0" max="15" step="0.1"></div>
+<div class="field"><label for="en-mort-years">Term (years)</label><input id="en-mort-years" type="number" value="25" min="1" max="40" step="1"></div>
+<div class="field-help">Illustration only. A lender assesses expenses, deposits, debts and eligibility separately.</div>
+</fieldset></div></details>
+<div class="main"><div class="chart-row"><div class="chart-card"><div class="chart-header"><div class="chart-title">Take-home income by gross household salary</div><span class="chart-period">Monthly</span></div>
+    <div class="legend" id="en-legend" style="margin:12px 0"></div>
+    <div class="chart-wrap"><canvas id="en-canvas-monthly" aria-label="Monthly England income chart" role="img"></canvas></div>
+    <p class="hint" id="en-hint-monthly">Move over the chart · Slow down for £10 precision · Click to freeze</p></div>
+    <div class="details-card england-details"><div class="details-title">Details <span class="panel-period">Monthly</span></div>
+    <div class="detail-row"><label for="en-gross-monthly">Gross household salary (£)</label><div class="gross-editor"><button type="button" class="gross-display" id="en-gross-display-monthly" aria-label="Edit monthly gross salary" title="Click to edit">—</button><input class="gross-input" id="en-gross-monthly" type="number" min="0" max="25000" step="any" inputmode="decimal" hidden></div></div>
+    <div class="detail-row"><label>Salary-sacrifice pension</label><div class="detail-val " id="en-pension-monthly"><span class="placeholder">—</span></div></div>
+    <div class="detail-row"><label>Employee National Insurance</label><div class="detail-val em-negative" id="en-ni-monthly"><span class="placeholder">—</span></div></div>
+    <details><summary>National Insurance breakdown</summary><div id="en-ni-details-monthly"></div></details>
+    <div class="divider"></div>
+    <div class="detail-row"><label>Income Tax</label><div class="detail-val em-negative" id="en-tax-monthly"><span class="placeholder">—</span></div></div>
+    <div class="tax-base">After Personal Allowances: <span id="en-tax-base-monthly">—</span> / month equivalent</div>
+    <div class="detail-row"><label>Effective Income Tax rate</label><div class="detail-val " id="en-effective-monthly"><span class="placeholder">—</span></div></div>
+    <details><summary>Tax and allowance breakdown · per adult</summary><div id="en-earner-details-monthly"></div></details>
+    <div class="detail-row"><label>Student & postgraduate repayments</label><div class="detail-val em-negative" id="en-loans-monthly"><span class="placeholder">—</span></div></div>
+    <div class="detail-row"><label>Take-home before Child Benefit charge</label><div class="detail-val " id="en-take-home-monthly"><span class="placeholder">—</span></div></div>
+    <div class="detail-row"><label>High Income Child Benefit Charge</label><div class="detail-val em-negative" id="en-charge-monthly"><span class="placeholder">—</span></div></div>
+    <div class="divider"></div>
+    <div class="detail-row"><label>Child Benefit (before charge)</label><div class="detail-val em-positive" id="en-child-benefit-monthly"><span class="placeholder">—</span></div></div>
+    <div class="detail-row"><label>Universal Credit</label><div class="detail-val em-positive" id="en-uc-monthly"><span class="placeholder">—</span></div></div>
+    <details><summary>Government support calculation</summary><div id="en-uc-details-monthly"></div></details>
+    <div class="detail-row"><label>Total cash income</label><div class="detail-val em-total" id="en-total-monthly"><span class="placeholder">—</span></div></div>
+    <div class="divider"></div>
+    <div class="detail-row"><label>Tax-Free Childcare · restricted top-up</label><div class="detail-val em-positive" id="en-tfc-monthly"><span class="placeholder">—</span></div></div>
+    <div class="detail-row"><label>After entered childcare bill</label><div class="detail-val " id="en-after-childcare-monthly"><span class="placeholder">—</span></div></div>
+    <details><summary>Mortgage illustration</summary><div id="en-mortgage-monthly"></div><p class="field-help">Gross-income multiple illustration, not a lender affordability assessment. Benefits are not included in borrowing income.</p></details>
+    <p class="estimate-message" id="en-message-monthly"></p></div></div><div class="chart-row"><div class="chart-card"><div class="chart-header"><div class="chart-title">Take-home income by gross household salary</div><span class="chart-period">Annual</span></div>
+
+    <div class="chart-wrap"><canvas id="en-canvas-annual" aria-label="Annual England income chart" role="img"></canvas></div>
+    <p class="hint" id="en-hint-annual">Move over the chart · Slow down for £10 precision · Click to freeze</p></div>
+    <div class="details-card england-details"><div class="details-title">Details <span class="panel-period">Annual</span></div>
+    <div class="detail-row"><label for="en-gross-annual">Gross household salary (£)</label><div class="gross-editor"><button type="button" class="gross-display" id="en-gross-display-annual" aria-label="Edit annual gross salary" title="Click to edit">—</button><input class="gross-input" id="en-gross-annual" type="number" min="0" max="300000" step="any" inputmode="decimal" hidden></div></div>
+    <div class="detail-row"><label>Salary-sacrifice pension</label><div class="detail-val " id="en-pension-annual"><span class="placeholder">—</span></div></div>
+    <div class="detail-row"><label>Employee National Insurance</label><div class="detail-val em-negative" id="en-ni-annual"><span class="placeholder">—</span></div></div>
+    <details><summary>National Insurance breakdown</summary><div id="en-ni-details-annual"></div></details>
+    <div class="divider"></div>
+    <div class="detail-row"><label>Income Tax</label><div class="detail-val em-negative" id="en-tax-annual"><span class="placeholder">—</span></div></div>
+    <div class="tax-base">After Personal Allowances: <span id="en-tax-base-annual">—</span> / year</div>
+    <div class="detail-row"><label>Effective Income Tax rate</label><div class="detail-val " id="en-effective-annual"><span class="placeholder">—</span></div></div>
+    <details><summary>Tax and allowance breakdown · per adult</summary><div id="en-earner-details-annual"></div></details>
+    <div class="detail-row"><label>Student & postgraduate repayments</label><div class="detail-val em-negative" id="en-loans-annual"><span class="placeholder">—</span></div></div>
+    <div class="detail-row"><label>Take-home before Child Benefit charge</label><div class="detail-val " id="en-take-home-annual"><span class="placeholder">—</span></div></div>
+    <div class="detail-row"><label>High Income Child Benefit Charge</label><div class="detail-val em-negative" id="en-charge-annual"><span class="placeholder">—</span></div></div>
+    <div class="divider"></div>
+    <div class="detail-row"><label>Child Benefit (before charge)</label><div class="detail-val em-positive" id="en-child-benefit-annual"><span class="placeholder">—</span></div></div>
+    <div class="detail-row"><label>Universal Credit</label><div class="detail-val em-positive" id="en-uc-annual"><span class="placeholder">—</span></div></div>
+    <details><summary>Government support calculation</summary><div id="en-uc-details-annual"></div></details>
+    <div class="detail-row"><label>Total cash income</label><div class="detail-val em-total" id="en-total-annual"><span class="placeholder">—</span></div></div>
+    <div class="divider"></div>
+    <div class="detail-row"><label>Tax-Free Childcare · restricted top-up</label><div class="detail-val em-positive" id="en-tfc-annual"><span class="placeholder">—</span></div></div>
+    <div class="detail-row"><label>After entered childcare bill</label><div class="detail-val " id="en-after-childcare-annual"><span class="placeholder">—</span></div></div>
+    <details><summary>Mortgage illustration</summary><div id="en-mortgage-annual"></div><p class="field-help">Gross-income multiple illustration, not a lender affordability assessment. Benefits are not included in borrowing income.</p></details>
+    <p class="estimate-message" id="en-message-annual"></p></div></div></div>
+<section class="research-panel" id="en-methodology"><h2>How this estimate works</h2>
+<p>Income Tax uses individual Personal Allowances, the £100,000 allowance taper and England’s 20% / 40% / 45% bands. Employee National Insurance uses monthly Category A thresholds. Loans and salary-sacrifice pensions are separate deductions.</p>
+<p>Universal Credit is means-tested for the household. The estimate includes standard and child elements, eligible housing and childcare amounts, confirmed disability/carer elements, earnings taper, capital rules and the benefit cap. The two-child limit ended for assessment periods starting on or after 6 April 2026. Tax-Free Childcare is an alternative to UC: its top-up goes to a childcare account and is excluded from total cash income.</p>
+<ul><li><a href="https://www.gov.uk/income-tax-rates">Income Tax & Personal Allowance</a> · <a href="https://www.gov.uk/guidance/rates-and-thresholds-for-employers-2026-to-2027">HMRC payroll, NI & student-loan rates</a></li>
+<li><a href="https://www.gov.uk/universal-credit/what-youll-get">Universal Credit elements</a> · <a href="https://www.gov.uk/benefit-cap">Benefit cap</a> · <a href="https://www.gov.uk/child-benefit-tax-charge">Child Benefit tax charge</a></li>
+<li><a href="https://www.gov.uk/tax-free-childcare">Tax-Free Childcare</a> · <a href="https://www.gov.uk/apply-free-childcare-if-youre-working">Funded childcare hours</a> · <a href="https://www.gov.uk/apply-council-tax-reduction">Local Council Tax Reduction</a></li></ul>
+<p>Funded childcare hours, Council Tax Reduction, PIP / DLA cash awards, contribution-based benefits and local grants are not automatically added. Enter childcare bills after funded hours. Self-employment, savings/dividend/rental income, pension-age cases, nonstandard tax codes and uneven pay need a separate assessment.</p>
+<p><a href="docs/england-tax-2026-27.md">Full research notes, formulas, worked examples & limitations (Markdown)</a> · <a href="https://www.gov.uk/benefits-calculators">Official guidance to benefits calculators</a>. Sources checked 19 November 2026.</p></section>
+</div><script src="england-calculator.js"></script><script src="mortgage.js"></script><script src="england-app.js"></script></body></html>

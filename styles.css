@@ -1,0 +1,497 @@
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #f0f2f7;
+      color: #1a1a2e;
+      min-height: 100vh;
+    }
+
+    .app {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 36px 28px;
+    }
+
+    header { margin-bottom: 28px; }
+
+    h1 {
+      font-size: 26px;
+      font-weight: 700;
+      letter-spacing: -0.3px;
+      color: #111827;
+    }
+
+    .subtitle {
+      font-size: 13px;
+      color: #6b7280;
+      margin-top: 4px;
+    }
+
+    /* ─── Controls ──────────────────────────────────── */
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+      align-items: flex-end;
+      background: white;
+      padding: 20px 24px;
+      border-radius: 14px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.07);
+      margin-bottom: 24px;
+    }
+
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+
+    .field > label, .field-label {
+      font-size: 11px;
+      font-weight: 600;
+      color: #9ca3af;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    .field input[type="number"],
+    .field select {
+      border: 1.5px solid #e5e7eb;
+      border-radius: 9px;
+      padding: 9px 13px;
+      font-size: 15px;
+      color: #111827;
+      background: white;
+      outline: none;
+      transition: border-color 0.15s;
+      min-width: 160px;
+      -moz-appearance: textfield;
+      appearance: textfield;
+    }
+
+    .field input[type="number"]::-webkit-inner-spin-button { opacity: 0.5; }
+    .field input:focus, .field select:focus { border-color: #818cf8; }
+
+    .checkbox-wrap {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+
+    .checkbox-row {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      padding: 9px 0 2px;
+    }
+
+    .checkbox-row input[type="checkbox"] {
+      width: 17px;
+      height: 17px;
+      cursor: pointer;
+      accent-color: #6366f1;
+      flex-shrink: 0;
+    }
+
+    .checkbox-row label {
+      font-size: 14px;
+      font-weight: 500;
+      color: #374151;
+      cursor: pointer;
+    }
+
+    .checkbox-hint {
+      font-size: 11px;
+      color: #9ca3af;
+      padding-left: 26px;
+    }
+
+    /* ─── Main layout: two stacked rows ─────────────── */
+    .main {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    /* Each row = chart (1fr) + details panel (fixed width) */
+    .chart-row {
+      display: grid;
+      grid-template-columns: 1fr 280px;
+      gap: 20px;
+      align-items: start;
+    }
+
+    /* ─── Chart card ─────────────────────────────────── */
+    .chart-card {
+      background: white;
+      border-radius: 14px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.07);
+      padding: 20px 24px 16px;
+    }
+
+    .chart-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 14px;
+      flex-wrap: wrap;
+    }
+
+    .chart-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: #374151;
+      flex: 1;
+    }
+
+    .chart-period {
+      font-size: 11px;
+      font-weight: 700;
+      color: #6366f1;
+      background: #eef2ff;
+      border-radius: 4px;
+      padding: 2px 8px;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      flex-shrink: 0;
+    }
+
+    .legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      width: 100%;
+      margin-top: 2px;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11px;
+      color: #6b7280;
+    }
+
+    .legend-line {
+      width: 20px;
+      height: 2.5px;
+      border-radius: 2px;
+    }
+
+    .chart-wrap {
+      position: relative;
+      height: 280px;
+    }
+
+    .hint {
+      font-size: 11px;
+      color: #c4c9d4;
+      text-align: center;
+      margin-top: 10px;
+      user-select: none;
+    }
+
+    /* ─── Details panel ──────────────────────────────── */
+    .details-card {
+      background: white;
+      border-radius: 14px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.07);
+      padding: 20px 18px;
+      position: sticky;
+      top: 24px;
+    }
+
+    .details-title {
+      font-size: 14px;
+      font-weight: 700;
+      color: #374151;
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .panel-period {
+      font-size: 10px;
+      font-weight: 700;
+      color: white;
+      border-radius: 4px;
+      padding: 2px 7px;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+
+    .detail-row { margin-bottom: 12px; }
+
+    .detail-row label {
+      display: block;
+      font-size: 10px;
+      font-weight: 600;
+      color: #9ca3af;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 2px;
+    }
+
+    .detail-val {
+      font-size: 17px;
+      font-weight: 700;
+      color: #111827;
+    }
+
+    .gross-editor [hidden] { display: none; }
+
+    .gross-display, .gross-input {
+      box-sizing: border-box;
+      width: 100%;
+      padding: 0;
+      border: 0;
+      background: transparent;
+      font: inherit;
+      font-size: 17px;
+      font-weight: 700;
+      line-height: 26px;
+      text-align: left;
+      color: #111827;
+    }
+
+    .gross-display { cursor: text; }
+    .gross-display:hover { color: #6366f1; }
+    .gross-display:focus-visible { outline: 2px solid #6366f1; outline-offset: 2px; }
+    .gross-input::placeholder { color: #9ca3af; font-size: 13px; font-weight: 400; }
+    .gross-input:focus { outline: none; box-shadow: 0 1px 0 #6366f1; }
+
+    .detail-val.em-negative { color: #ef4444; }
+    .detail-val.em-positive { color: #22c55e; }
+    .detail-val.em-total    { color: #6366f1; font-size: 19px; }
+
+    .tax-base { margin-top: 5px; font-size: 12px; line-height: 1.5; color: #6b7280; }
+    .tax-base span { font-weight: 600; white-space: nowrap; }
+
+    .rate-row {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .rate-item { flex: 1; }
+
+    .rate-item label {
+      display: block;
+      font-size: 10px;
+      font-weight: 600;
+      color: #9ca3af;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 2px;
+    }
+
+    .rate-val {
+      font-size: 15px;
+      font-weight: 700;
+      color: #111827;
+    }
+
+    .divider {
+      height: 1px;
+      background: #f3f4f6;
+      margin: 2px 0 12px;
+    }
+
+    .placeholder {
+      color: #d1d5db;
+      font-size: 14px;
+      font-weight: 400;
+    }
+
+    /* ─── Cotisations breakdown (monthly panel) ──────── */
+    .cot-block { margin-bottom: 12px; }
+
+    .cot-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .cot-header-label {
+      font-size: 10px;
+      font-weight: 600;
+      color: #9ca3af;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .cot-chevron {
+      font-size: 8px;
+      color: #c4c9d4;
+      transition: transform 0.18s;
+    }
+
+    .cot-block.open .cot-chevron { transform: rotate(180deg); }
+
+    .cot-total {
+      font-size: 17px;
+      font-weight: 700;
+      color: #ef4444;
+    }
+
+    .cot-list {
+      display: none;
+      margin-top: 8px;
+      border-top: 1px solid #f3f4f6;
+      padding-top: 6px;
+    }
+
+    .cot-block.open .cot-list { display: block; }
+
+    .cot-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      padding: 3px 0;
+      font-size: 11px;
+    }
+
+    .cot-row-label { color: #6b7280; }
+
+    .cot-row-sub {
+      display: block;
+      font-size: 9px;
+      color: #9ca3af;
+      margin-top: 1px;
+    }
+
+    .cot-row-val {
+      font-weight: 600;
+      color: #f87171;
+      font-size: 11px;
+      flex-shrink: 0;
+      margin-left: 6px;
+    }
+
+    /* ─── SMIC badge ─────────────────────────────────── */
+    .smic-badge {
+      font-size: 9px;
+      font-weight: 700;
+      color: #6366f1;
+      background: #eef2ff;
+      border-radius: 4px;
+      padding: 1px 5px;
+      letter-spacing: 0.05em;
+    }
+
+    /* ─── Adults toggle ─────────────────────────────── */
+    .toggle-group {
+      display: flex;
+      border: 1.5px solid #e5e7eb;
+      border-radius: 9px;
+      overflow: hidden;
+    }
+
+    .toggle-btn {
+      flex: 1;
+      padding: 9px 16px;
+      background: white;
+      border: none;
+      font-size: 14px;
+      font-weight: 500;
+      color: #6b7280;
+      cursor: pointer;
+      transition: background 0.15s, color 0.15s;
+      white-space: nowrap;
+    }
+
+    .toggle-btn:not(:last-child) { border-right: 1.5px solid #e5e7eb; }
+
+    .toggle-btn.active {
+      background: #6366f1;
+      color: white;
+      font-weight: 600;
+    }
+
+    /* ─── Child age inputs ───────────────────────────── */
+    #childrenAgesSection { flex-wrap: wrap; gap: 8px; align-items: flex-end; }
+
+    .child-age-field input[type="number"] { min-width: 72px !important; }
+
+    /* ─── QF computed display ────────────────────────── */
+    .qf-display {
+      font-size: 16px;
+      font-weight: 700;
+      color: #374151;
+      padding: 9px 0;
+      opacity: 0.7;
+    }
+
+    /* ─── Responsive ─────────────────────────────────── */
+    @media (max-width: 860px) {
+      .chart-row { grid-template-columns: 1fr; }
+      .details-card { position: static; }
+    }
+
+    /* ─── Range sliders (mortgage controls) ──────────── */
+    input[type="range"] {
+      -webkit-appearance: none; appearance: none;
+      height: 4px; background: #e5e7eb; border-radius: 2px;
+      outline: none; cursor: pointer; min-width: 120px;
+      accent-color: #6366f1;
+    }
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none; appearance: none;
+      width: 15px; height: 15px; border-radius: 50%;
+      background: #6366f1; cursor: pointer;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.25);
+    }
+    input[type="range"]::-moz-range-thumb {
+      width: 15px; height: 15px; border-radius: 50%;
+      background: #6366f1; cursor: pointer; border: none;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.25);
+    }
+    .slider-row { display: flex; align-items: center; gap: 10px; }
+    .slider-val { font-size: 15px; font-weight: 700; color: #111827; min-width: 54px; text-align: right; }
+
+/* Country navigation and England settings; the French layout stays shared. */
+.country-tabs { display: flex; gap: 6px; margin-bottom: 22px; border-bottom: 1px solid #d1d5db; }
+.country-tabs a { padding: 10px 18px; color: #6b7280; text-decoration: none; border-bottom: 3px solid transparent; font-size: 14px; font-weight: 600; }
+.country-tabs a[aria-current="page"] { color: #4f46e5; border-color: #6366f1; }
+.country-tabs a:focus-visible { outline: 2px solid #6366f1; }
+.scope-note { color: #6b7280; font-size: 12px; line-height: 1.6; margin: 12px 0 20px; }
+.scope-note a, .research-panel a { color: #4f46e5; }
+.england-settings { background: white; border-radius: 14px; padding: 18px 24px; margin-bottom: 24px; box-shadow: 0 1px 4px rgba(0,0,0,.07); }
+.england-settings > summary { font-size: 14px; font-weight: 600; cursor: pointer; }
+.settings-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin-top: 18px; }
+.settings-grid fieldset { border: 1px solid #e5e7eb; border-radius: 10px; padding: 16px; min-width: 0; }
+.settings-grid legend { font-size: 13px; font-weight: 700; padding: 0 5px; color: #374151; }
+.settings-grid .field { margin: 0 0 12px; }
+.settings-grid .field input, .settings-grid .field select { width: 100%; min-width: 0; }
+.field-help { color: #6b7280; font-size: 11px; line-height: 1.5; max-width: 270px; }
+.england-child { padding: 14px 0; border-top: 1px solid #e5e7eb; }
+.england-child > h3 { font-size: 13px; margin-bottom: 10px; }
+.england-children-grid { display: flex; flex-wrap: wrap; gap: 16px; }
+.england-page .controls .field, .england-children-grid .field { min-width: 0; max-width: 100%; }
+.england-page .controls select, .england-children-grid select, .england-children-grid input { min-width: 0; max-width: 100%; }
+.england-details details { margin: 12px 0; }
+.england-page .chart-row { grid-template-columns: minmax(0, 1fr) 280px; }
+.england-page .chart-card, .england-page .chart-wrap, .england-page .details-card { min-width: 0; }
+.england-page .chart-wrap canvas { max-width: 100%; }
+.england-details .panel-period { background: #6366f1; }
+.england-settings input[type="date"] { border: 1.5px solid #e5e7eb; border-radius: 9px; padding: 9px 13px; font: inherit; color: #111827; background: #fff; }
+.england-details summary { cursor: pointer; color: #6b7280; font-size: 12px; font-weight: 600; }
+.england-details .cot-row { padding: 6px 0; }
+.england-details .tax-base { margin-top: 5px; }
+.england-details .divider { margin: 14px 0; }
+.estimate-message { color: #6b7280; font-size: 12px; line-height: 1.5; margin-top: 12px; }
+.research-panel { background: white; border-radius: 14px; padding: 22px 24px; margin-top: 24px; line-height: 1.7; color: #4b5563; font-size: 13px; }
+.research-panel h2 { font-size: 16px; color: #111827; margin-bottom: 10px; }
+.research-panel ul { padding-left: 20px; }
+[hidden] { display: none !important; }
+@media (max-width: 640px) { .england-settings { padding: 16px; } .settings-grid { grid-template-columns: 1fr; } }
+@media (max-width: 860px) { .england-page .chart-row { grid-template-columns: minmax(0, 1fr); } }
