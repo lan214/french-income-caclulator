@@ -380,6 +380,7 @@ const CALC = (() => {
     const annualIR           = calcAnnualIR(netImposableByEarner, family);
     const monthlyIR          = annualIR / 12;
     const annualNetImposable = netImposable * 12;
+    const annualTaxableIncome = calcTaxableIncome(netImposableByEarner);
 
     // Pinel : réduction d'impôt directe, plafonnée à l'IR dû
     const pinelAnnual        = calcPinelReduction(pinel);
@@ -403,6 +404,7 @@ const CALC = (() => {
     return {
       breakdown, totalCotisations, net, netImposable,
       nbParts, annualIR, monthlyIR, effectiveRate, marginalRate,
+      annualTaxableIncome,
       pinelAnnual, pinelBenefitAnnual, pinelMonthly, effectiveMonthlyIR,
       rsa, primeActivite, af, paje, ars, cf,
       aide, total,

@@ -275,6 +275,9 @@
     .detail-val.em-positive { color: #22c55e; }
     .detail-val.em-total    { color: #6366f1; font-size: 19px; }
 
+    .tax-base { margin-top: 5px; font-size: 12px; line-height: 1.5; color: #6b7280; }
+    .tax-base span { font-weight: 600; white-space: nowrap; }
+
     .rate-row {
       display: flex;
       gap: 12px;
@@ -652,6 +655,9 @@
         <div class="detail-row">
           <label>Impôt sur le revenu</label>
           <div class="detail-val em-negative" id="dTax"><span class="placeholder">—</span></div>
+          <div class="tax-base" title="Base annuelle après déduction des frais professionnels, divisée par 12. L'impôt est calculé à l'année.">
+            Base après abattement : <span id="dTaxableIncome"><span class="placeholder">—</span></span>
+          </div>
         </div>
 
         <div class="rate-row">
@@ -756,6 +762,9 @@
         <div class="detail-row">
           <label>Impôt sur le revenu</label>
           <div class="detail-val em-negative" id="aTax"><span class="placeholder">—</span></div>
+          <div class="tax-base">
+            Base après abattement : <span id="aTaxableIncome"><span class="placeholder">—</span></span>
+          </div>
         </div>
 
         <div class="detail-row">

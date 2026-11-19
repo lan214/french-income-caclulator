@@ -97,9 +97,28 @@ test('changing salary split refreshes a typed frozen amount and both chart datas
   assert.notEqual(ui.document.getElementById('aTax').textContent, oldTax);
   assert.equal(ui.document.getElementById('aTax').textContent, ui.evaluate(
     "'−' + fmtEur(CALC.calculate(20000, getInputs().family, true, false).annualIR)"));
+  assert.equal(ui.document.getElementById('aTaxableIncome').textContent, ui.evaluate(
+    'fmtEur(CALC.calculate(20000, getInputs().family, true, false).annualTaxableIncome)'));
+  assert.equal(ui.document.getElementById('dTaxableIncome').textContent, ui.evaluate(
+    'fmtEur(CALC.calculate(20000, getInputs().family, true, false).annualTaxableIncome / 12)'));
   assert.equal(ui.evaluate('annualChart.data.datasets[1].data.find(p => p.x === 240000).y'),
     ui.evaluate('monthlyChart.data.datasets[1].data.find(p => p.x === 20000).y * 12'));
   ui.setAdults(1);
   ui.evaluate('rebuild()');
   assert.equal(ui.document.getElementById('incomeSplitField').style.display, 'none');
+});
+
+test('tax base is shown after deductions, handles zero and clears with the selection', () => {
+  const ui = loadUI();
+  ui.evaluate('renderDetails(3000)');
+  assert.equal(ui.document.getElementById('aTaxableIncome').textContent, '26 563 €');
+  assert.equal(ui.document.getElementById('dTaxableIncome').textContent, '2 214 €');
+  const salaryBeforeDeduction = ui.document.getElementById('aNetImposable').textContent;
+  assert.equal(salaryBeforeDeduction, '29 515 €');
+  ui.evaluate('renderDetails(0)');
+  assert.equal(ui.document.getElementById('aTaxableIncome').textContent, '0 €');
+  ui.evaluate('clearDetails()');
+  for (const id of ['dTaxableIncome', 'aTaxableIncome']) {
+    assert.equal(ui.document.getElementById(id).innerHTML, '<span class="placeholder">—</span>');
+  }
 });

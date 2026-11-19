@@ -502,6 +502,7 @@ function renderDetails(grossRaw) {
   setText('dNet',          fmtEur(r.net));
   setText('dNetImposable', fmtEur(r.netImposable));
   setText('dTax',          r.monthlyIR > 0.5 ? '−' + fmtEur(r.monthlyIR) : fmtEur(0));
+  setText('dTaxableIncome', fmtEur(r.annualTaxableIncome / 12));
   setText('dRateEff',      fmtPct(r.effectiveRate));
   setText('dRateTMI',      fmtPct(r.marginalRate));
   setText('dTotal',        fmtEur(r.total));
@@ -576,6 +577,7 @@ function renderDetails(grossRaw) {
   setText('aNet',          fmtEur(r.net * 12));
   setText('aNetImposable', fmtEur(r.netImposable * 12));
   setText('aTax',          r.annualIR > 0.5 ? '−' + fmtEur(r.annualIR) : fmtEur(0));
+  setText('aTaxableIncome', fmtEur(r.annualTaxableIncome));
   setText('aRateEff',      fmtPct(r.effectiveRate));
   setText('aAids',         r.aide * 12 > 0.5 ? '+' + fmtEur(r.aide * 12) : fmtEur(0));
   setText('aTotal',        fmtEur(r.total * 12));
@@ -629,8 +631,8 @@ function renderDetails(grossRaw) {
 function clearDetails() {
   const ph = placeholder();
   updateGrossInputs(null);
-  ['dCot','dNet','dNetImposable','dTax','dRateEff','dRateTMI','dAids','dPinel','dTotal',
-   'aCot','aNet','aNetImposable','aTax','aRateEff','aAids','aPinel','aTotal',
+  ['dCot','dNet','dNetImposable','dTax','dTaxableIncome','dRateEff','dRateTMI','dAids','dPinel','dTotal',
+   'aCot','aNet','aNetImposable','aTax','aTaxableIncome','aRateEff','aAids','aPinel','aTotal',
    'dMortMax','aMortMax']
     .forEach(id => { const el = document.getElementById(id); if (el) setHTML(id, ph); });
   document.getElementById('cotList').innerHTML      = '';
