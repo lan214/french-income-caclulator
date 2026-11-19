@@ -112,6 +112,33 @@ test('children, scheme changes and support toggle recalculate restricted and cas
   assert.equal(ui.nodes.get('en-tfc-monthly').textContent, '£0');
 });
 
+test('pension units preserve contribution, fixed amounts follow monthly/annual displays and salary limits', () => {
+  const ui = loadUI();
+  ui.set('en-pension-0', '10');
+  assert.equal(ui.nodes.get('en-pension-monthly').textContent, '-£400');
+  const tax = ui.nodes.get('en-tax-annual').textContent;
+  ui.set('en-pension-unit-0', 'monthly');
+  assert.equal(ui.nodes.get('en-pension-0').value, '400');
+  assert.equal(ui.nodes.get('en-tax-annual').textContent, tax);
+  ui.set('en-pension-unit-0', 'annual');
+  assert.equal(ui.nodes.get('en-pension-0').value, '4800');
+  ui.set('en-pension-0', '6000');
+  assert.equal(ui.nodes.get('en-pension-monthly').textContent, '-£500');
+  assert.equal(ui.nodes.get('en-pension-annual').textContent, '-£6,000');
+  ui.set('en-gross-monthly', '6000');
+  assert.equal(ui.nodes.get('en-pension-monthly').textContent, '-£500');
+  ui.set('en-pension-unit-0', 'percent');
+  assert.equal(ui.nodes.get('en-pension-0').value, '8.333333');
+  ui.set('en-pension-unit-0', 'monthly');
+  ui.set('en-pension-0', '500');
+  ui.set('en-adults', '2');
+  ui.set('en-pension-unit-1', 'annual');
+  ui.set('en-pension-1', '1200');
+  assert.equal(ui.nodes.get('en-pension-monthly').textContent, '-£600');
+  ui.set('en-share', '0');
+  assert.equal(ui.nodes.get('en-pension-monthly').textContent, '-£100');
+});
+
 test('slow mouse adjustment is £10 per pixel, click freezes, leaving clears unfrozen details', () => {
   const { nodes, charts } = loadUI();
   const canvas = charts[0].canvas;

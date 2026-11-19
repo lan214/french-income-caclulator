@@ -46,6 +46,29 @@ test('salary-sacrifice pension reduces cash pay, NI, taxable income and ANI', ()
   close(result.total, 9000 - result.nationalInsurance - result.incomeTaxAnnual / 12);
 });
 
+test('fixed salary sacrifice matches a percentage at the same pay and stays fixed across salaries', () => {
+  const options = { support: false, earners: [{ pensionMonthly: 500 }] };
+  const fixed = C.calculate(5000, options);
+  const percentage = C.calculate(5000, { support: false, earners: [{ pensionPercent: 10 }] });
+  close(fixed.total, percentage.total);
+  close(fixed.incomeTaxAnnual, percentage.incomeTaxAnnual);
+  close(fixed.nationalInsurance, percentage.nationalInsurance);
+  close(C.calculate(6000, options).pension, 500);
+  close(C.calculate(200, options).pension, 200);
+  close(C.calculate(0, options).total, 0);
+  close(C.payroll(5000, { pensionMonthly: 0, pensionPercent: 10 }).pension, 0);
+  close(C.payroll(5000, { pensionMonthly: -100 }).pension, 0);
+});
+
+test('each adult sacrifices from their own salary before tax and household support', () => {
+  const result = C.calculate(4000, { adults: 2, share: 0.25,
+    earners: [{ pensionMonthly: 1500 }, { pensionMonthly: 200 }] });
+  close(result.pension, 1200);
+  close(result.earners[0].pay, 0);
+  close(result.earners[1].pay, 2800);
+  close(result.uc.earnings, 2800 - result.nationalInsurance - result.incomeTaxAnnual / 12);
+});
+
 test('couples have independent taxes and NI; splitting household pay matters', () => {
   const one = C.calculate(5000, { support: false });
   const two = C.calculate(5000, { support: false, adults: 2, share: 0.5 });

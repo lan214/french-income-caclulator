@@ -17,7 +17,8 @@
 <details class="england-settings"><summary>Tax, pension, childcare & benefit settings</summary>
 <div class="settings-grid"><fieldset id="en-adult-0" ><legend>Adult 1</legend>
     <div class="field"><label for="en-age-0">Age (18–65)</label><input id="en-age-0" type="number" value="30" min="18" max="65" step="1"></div>
-    <div class="field"><label for="en-pension-0">Salary-sacrifice pension (%)</label><input id="en-pension-0" type="number" value="0" min="0" max="100" step="0.5"></div>
+    <div class="field"><label for="en-pension-unit-0">Salary-sacrifice pension unit</label><select id="en-pension-unit-0"><option value="percent">% of gross salary</option><option value="monthly">£ per month</option><option value="annual">£ per year</option></select></div>
+    <div class="field"><label id="en-pension-label-0" for="en-pension-0">Salary-sacrifice pension (%)</label><input id="en-pension-0" type="number" value="0" min="0" max="100" step="0.5" inputmode="decimal"></div>
     <div class="field-help">Salary sacrifice only. Your employer must preserve minimum-wage pay; pension allowance charges are not included.</div>
     <div class="field"><label for="en-loan-0">Student loan</label><select id="en-loan-0"><option value="none">None</option><option value="1">Plan 1</option><option value="2">Plan 2</option><option value="4">Plan 4</option><option value="5">Plan 5</option></select></div>
     <div class="checkbox-row"><input id="en-pg-0" type="checkbox" ><label for="en-pg-0">Also repay a postgraduate loan</label></div>
@@ -25,7 +26,8 @@
     <div class="checkbox-row"><input id="en-carer-0" type="checkbox" ><label for="en-carer-0">Qualifies for UC carer element (35+ hours)</label></div>
     <div class="field-help">Use confirmed eligibility. Two carers must care for different qualifying people.</div></fieldset><fieldset id="en-adult-1" hidden><legend>Adult 2</legend>
     <div class="field"><label for="en-age-1">Age (18–65)</label><input id="en-age-1" type="number" value="30" min="18" max="65" step="1"></div>
-    <div class="field"><label for="en-pension-1">Salary-sacrifice pension (%)</label><input id="en-pension-1" type="number" value="0" min="0" max="100" step="0.5"></div>
+    <div class="field"><label for="en-pension-unit-1">Salary-sacrifice pension unit</label><select id="en-pension-unit-1"><option value="percent">% of gross salary</option><option value="monthly">£ per month</option><option value="annual">£ per year</option></select></div>
+    <div class="field"><label id="en-pension-label-1" for="en-pension-1">Salary-sacrifice pension (%)</label><input id="en-pension-1" type="number" value="0" min="0" max="100" step="0.5" inputmode="decimal"></div>
     <div class="field-help">Salary sacrifice only. Your employer must preserve minimum-wage pay; pension allowance charges are not included.</div>
     <div class="field"><label for="en-loan-1">Student loan</label><select id="en-loan-1"><option value="none">None</option><option value="1">Plan 1</option><option value="2">Plan 2</option><option value="4">Plan 4</option><option value="5">Plan 5</option></select></div>
     <div class="checkbox-row"><input id="en-pg-1" type="checkbox" ><label for="en-pg-1">Also repay a postgraduate loan</label></div>
