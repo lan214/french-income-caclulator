@@ -39,6 +39,8 @@ test('household net and contribution breakdown sum the two actual payrolls', () 
         closeTo(result.breakdown[key], first.breakdown[key] + second.breakdown[key]);
       }
       closeTo(result.annualIR, CALC.calcAnnualIR([first.netImposable, second.netImposable], dual));
+      closeTo(result.annualTaxableIncome,
+        CALC.calcTaxableIncome([first.netImposable, second.netImposable]));
       closeTo(result.total, result.net - result.effectiveMonthlyIR);
     }
   }
