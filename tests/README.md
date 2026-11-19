@@ -26,3 +26,17 @@ first child has a special €4,262 cap for its full part. Cases assume exclusive
 custody, attached children, and eligibility for case T for single parents, as in
 the existing family controls. Shared custody, disability and other special cases
 are not modeled. The reported marginal bracket accounts for a binding cap.
+
+## Two-earner households
+
+Source: [Service Public: salary expense deduction](https://www.service-public.gouv.fr/particuliers/vosdroits/F1989).
+The €509 minimum (limited to actual salary) and €14,555 maximum apply separately
+to each earner. `calcAnnualIR` and `calcTaxableIncome` accept a monthly net taxable
+salary or an array with one amount per earner. `calculate` takes total household
+gross and splits it using `family.primaryIncomeShare` (0–1, default 0.5), applying
+the existing payroll model to each salary before adding household income.
+
+Couples represent married/PACS joint filers. The UI exposes the gross split for
+two earners; one-earner couples and individuals retain the previous gross meaning.
+Both earners use the selected employment status. Family benefits retain the
+existing simplified formulas; this change does not make those full CAF estimates.

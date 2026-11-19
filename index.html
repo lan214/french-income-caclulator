@@ -468,7 +468,7 @@
 
   <header>
     <h1>Calculateur de Revenus</h1>
-    <p class="subtitle">Simulation du revenu net total — France 2026 · PMSS 4 005 €</p>
+    <p class="subtitle">Revenus du foyer — France 2026 · IR : barème 2026 sur les revenus 2025 · PMSS 4 005 €</p>
   </header>
 
   <div class="controls">
@@ -478,7 +478,7 @@
       <label>Adultes dans le foyer</label>
       <div class="toggle-group" id="adultsToggle">
         <button class="toggle-btn active" data-val="1">Célibataire</button>
-        <button class="toggle-btn" data-val="2">En couple</button>
+        <button class="toggle-btn" data-val="2">Mariés / Pacsés</button>
       </div>
     </div>
 
@@ -489,6 +489,12 @@
         <input type="checkbox" id="dualIncome" checked>
         <label for="dualIncome">Biactif (deux salaires)</label>
       </div>
+    </div>
+
+    <div class="field" id="incomeSplitField" style="display:none">
+      <label for="primaryIncomeShare">Part du brut total · adulte 1 (%)</label>
+      <input type="number" id="primaryIncomeShare" value="50" min="0" max="100" step="1">
+      <div class="checkbox-hint" style="padding-left:0;max-width:240px">Le graphique représente le brut total du foyer. Le reste revient au second adulte.</div>
     </div>
 
     <!-- Enfants -->
