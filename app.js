@@ -178,7 +178,7 @@ const monthlyChart = new Chart(
     data: { datasets: [] },
     options: makeChartOptions({
       xMax:     CALC.MAX_GROSS,
-      xTitle:   'Salaire brut mensuel (€)',
+      xTitle:   'Salaire brut mensuel du foyer (€)',
       xTickFmt: stdEur,
       yTickFmt: stdEur,
     }),
@@ -192,7 +192,7 @@ const annualChart = new Chart(
     data: { datasets: [] },
     options: makeChartOptions({
       xMax:     CALC.MAX_GROSS * 12,
-      xTitle:   'Salaire brut annuel (€)',
+      xTitle:   'Salaire brut annuel du foyer (€)',
       xTickFmt: kEur,
       yTickFmt: kEur,
     }),
@@ -449,6 +449,9 @@ function getInputs() {
   const adultsBtn = document.querySelector('#adultsToggle .toggle-btn.active');
   const adults    = adultsBtn ? parseInt(adultsBtn.dataset.val) : 1;
   const isDualIncome = adults === 2 && (document.getElementById('dualIncome')?.checked ?? true);
+  const sharePercent = parseFloat(document.getElementById('primaryIncomeShare').value);
+  const primaryIncomeShare = Number.isFinite(sharePercent)
+    ? Math.max(0, Math.min(100, sharePercent)) / 100 : 0.5;
   const nbChildren   = Math.max(0, Math.min(10, parseInt(document.getElementById('nbChildren').value) || 0));
 
   const childrenAges = [];
@@ -466,7 +469,7 @@ function getInputs() {
   };
 
   return {
-    family:      { adults, isDualIncome, childrenAges },
+    family:      { adults, isDualIncome, childrenAges, primaryIncomeShare },
     isCadre:     document.getElementById('status').value === 'cadre',
     includeAids: document.getElementById('includeAids').checked,
     pinel,
@@ -540,14 +543,14 @@ function renderDetails(grossRaw) {
     {
       label: 'AGIRC-ARRCO',
       val:   b.agirc_t1 + b.agirc_t2,
-      sub:   gross > CALC.PMSS
+      sub:   b.agirc_t2 > 0
         ? `T1 ${fmtEur(b.agirc_t1)} + T2 ${fmtEur(b.agirc_t2)}`
         : 'T1 uniquement',
     },
     {
       label: 'CEG / CET',
       val:   b.ceg_t1 + b.ceg_t2 + b.cet,
-      sub:   gross > CALC.PMSS
+      sub:   b.ceg_t2 > 0
         ? `CEG ${fmtEur(b.ceg_t1 + b.ceg_t2)} + CET ${fmtEur(b.cet)}`
         : 'CEG T1 uniquement',
     },
@@ -655,6 +658,7 @@ function setHTML(id, v) { document.getElementById(id).innerHTML   = v; }
 
 function rebuild() {
   const { family, isCadre, includeAids, pinel } = getInputs();
+  document.getElementById('incomeSplitField').style.display = family.isDualIncome ? '' : 'none';
   const nbParts = CALC.calcNbParts(family);
 
   // Update computed QF display
@@ -752,6 +756,7 @@ document.getElementById('nbChildren').addEventListener('input', () => {
 
 // Other controls
 document.getElementById('dualIncome').addEventListener('change',   rebuild);
+document.getElementById('primaryIncomeShare').addEventListener('input', rebuild);
 document.getElementById('status').addEventListener('change',       rebuild);
 document.getElementById('includeAids').addEventListener('change',  rebuild);
 

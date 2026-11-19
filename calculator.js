@@ -37,6 +37,8 @@ const CALC = (() => {
   const FP_RATE = 0.10;
   const FP_MIN  = 509;
   const FP_MAX  = 14555;
+  // Min/max apply separately to each salary earner (2026 assessment, 2025 income).
+  // https://www.service-public.gouv.fr/particuliers/vosdroits/F1989
 
   // Décote : imposition 2026 des revenus 2025, avant réductions (dont Pinel).
   // https://www.economie.gouv.fr/particuliers/impots-et-fiscalite/gerer-mon-impot-sur-le-revenu/pouvez-vous-beneficier-de-la-decote-de-limpot-sur-le-revenu
@@ -150,10 +152,14 @@ const CALC = (() => {
   // IMPÔT SUR LE REVENU
   // ================================================================
 
+  /** @param {number|number[]} netImposableMonthly One monthly amount per earner. */
   function calcTaxableIncome(netImposableMonthly) {
-    const annual = Math.max(0, netImposableMonthly * 12);
-    const abattement = Math.min(annual, FP_MAX, Math.max(FP_MIN, annual * FP_RATE));
-    return annual - abattement;
+    const salaries = Array.isArray(netImposableMonthly) ? netImposableMonthly : [netImposableMonthly];
+    return salaries.reduce((total, monthly) => {
+      const annual = Math.max(0, monthly * 12);
+      const abattement = Math.min(annual, FP_MAX, Math.max(FP_MIN, annual * FP_RATE));
+      return total + annual - abattement;
+    }, 0);
   }
 
   function calcTaxAtScale(taxable, nbParts) {
@@ -210,7 +216,7 @@ const CALC = (() => {
   // ================================================================
 
   /**
-   * @param {{ adults: 1|2, isDualIncome: boolean, childrenAges: number[] }} family
+   * @param {{ adults: 1|2, isDualIncome: boolean, childrenAges: number[], primaryIncomeShare?: number }} family
    * @returns {number}
    */
   function calcNbParts(family) {
@@ -349,18 +355,29 @@ const CALC = (() => {
   // ================================================================
 
   /**
-   * @param {number}  grossMonthly
-   * @param {{ adults: 1|2, isDualIncome: boolean, childrenAges: number[] }} family
+   * @param {number} grossMonthly Total monthly gross salary of the household.
+   * @param {{ adults: 1|2, isDualIncome: boolean, childrenAges: number[], primaryIncomeShare?: number }} family
    * @param {boolean} isCadre
    * @param {boolean} includeAids
    * @param {{ enabled: boolean, investment: number, duration: number, type: string }} [pinel]
    */
   function calculate(grossMonthly, family, isCadre, includeAids, pinel) {
-    const { breakdown, totalCotisations, net, netImposable } =
-      calcCotisations(grossMonthly, isCadre);
+    const share = Number.isFinite(family.primaryIncomeShare)
+      ? Math.max(0, Math.min(1, family.primaryIncomeShare)) : 0.5;
+    const salaries = family.adults === 2 && family.isDualIncome
+      ? [grossMonthly * share, grossMonthly * (1 - share)] : [grossMonthly];
+    const earners = salaries.map(gross => calcCotisations(gross, isCadre));
+    const sum = key => earners.reduce((total, earner) => total + earner[key], 0);
+    const breakdown = Object.fromEntries(Object.keys(earners[0].breakdown).map(key => [
+      key, earners.reduce((total, earner) => total + earner.breakdown[key], 0),
+    ]));
+    const totalCotisations = sum('totalCotisations');
+    const net = sum('net');
+    const netImposable = sum('netImposable');
+    const netImposableByEarner = earners.map(earner => earner.netImposable);
 
     const nbParts            = calcNbParts(family);
-    const annualIR           = calcAnnualIR(netImposable, family);
+    const annualIR           = calcAnnualIR(netImposableByEarner, family);
     const monthlyIR          = annualIR / 12;
     const annualNetImposable = netImposable * 12;
 
@@ -381,7 +398,7 @@ const CALC = (() => {
     const total = net - effectiveMonthlyIR + aide;
 
     const effectiveRate = annualNetImposable > 0 ? annualIR / annualNetImposable : 0;
-    const marginalRate  = getMarginalRate(netImposable, family);
+    const marginalRate  = getMarginalRate(netImposableByEarner, family);
 
     return {
       breakdown, totalCotisations, net, netImposable,
@@ -414,6 +431,7 @@ const CALC = (() => {
   return {
     calculate,
     calcAnnualIR,
+    calcTaxableIncome,
     getMarginalRate,
     generateChartPoints,
     calcNbParts,
