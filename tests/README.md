@@ -17,3 +17,12 @@ outside these checks; this remains a salary-based estimate.
 Source: [Ministry of Economy: décote, 2026 assessment](https://www.economie.gouv.fr/particuliers/impots-et-fiscalite/gerer-mon-impot-sur-le-revenu/pouvez-vous-beneficier-de-la-decote-de-limpot-sur-le-revenu).
 Individual allowance €897; joint allowance €1,483; coefficient 45.25%. Apply after
 the tax scale (and family cap when applicable), before Pinel or other reductions.
+
+## Family quotient cap
+
+Source: [Service Public: 2026 income-tax calculation](https://www.service-public.gouv.fr/particuliers/vosdroits/F34328).
+The child benefit is capped at €1,807 per additional half-part; a single parent's
+first child has a special €4,262 cap for its full part. Cases assume exclusive
+custody, attached children, and eligibility for case T for single parents, as in
+the existing family controls. Shared custody, disability and other special cases
+are not modeled. The reported marginal bracket accounts for a binding cap.

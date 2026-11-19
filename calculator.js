@@ -44,6 +44,12 @@ const CALC = (() => {
   const DECOTE_COUPLE = 1483;
   const DECOTE_RATE = 0.4525;
 
+  // Plafonnement du quotient familial : imposition 2026 des revenus 2025.
+  // Garde exclusive ; le premier enfant d'un parent isolé procure une part.
+  // https://www.service-public.gouv.fr/particuliers/vosdroits/F34328
+  const QF_HALF_PART_CAP = 1807;
+  const QF_SINGLE_FIRST_CHILD_CAP = 4262;
+
   // ── Aides individuelles — barème avril 2026 ──────────────────
   const RSA_MAX  = 651.69;  // RSA personne seule
   const MF_PA    = 638.28;  // Montant forfaitaire prime d'activité
@@ -144,12 +150,14 @@ const CALC = (() => {
   // IMPÔT SUR LE REVENU
   // ================================================================
 
-  function calcAnnualIR(netImposableMonthly, family) {
-    const nbParts    = calcNbParts(family);
-    const annual     = netImposableMonthly * 12;
-    const abattement = Math.min(FP_MAX, Math.max(FP_MIN, annual * FP_RATE));
-    const taxable    = annual - abattement;
-    const perPart    = taxable / nbParts;
+  function calcTaxableIncome(netImposableMonthly) {
+    const annual = Math.max(0, netImposableMonthly * 12);
+    const abattement = Math.min(annual, FP_MAX, Math.max(FP_MIN, annual * FP_RATE));
+    return annual - abattement;
+  }
+
+  function calcTaxAtScale(taxable, nbParts) {
+    const perPart = taxable / nbParts;
 
     let taxPerPart = 0;
     for (const t of IR_TRANCHES) {
@@ -157,17 +165,36 @@ const CALC = (() => {
         taxPerPart += (Math.min(perPart, t.max) - t.min) * t.rate;
       }
     }
-    const grossTax = Math.max(0, taxPerPart * nbParts);
+    return Math.max(0, taxPerPart * nbParts);
+  }
+
+  function calcFamilyTax(taxable, family) {
+    const nbParts = calcNbParts(family);
+    const withChildren = calcTaxAtScale(taxable, nbParts);
+    const extraHalfParts = Math.max(0, (nbParts - family.adults) * 2);
+    const cap = family.adults === 1 && family.childrenAges.length > 0
+      ? QF_SINGLE_FIRST_CHILD_CAP + Math.max(0, extraHalfParts - 2) * QF_HALF_PART_CAP
+      : extraHalfParts * QF_HALF_PART_CAP;
+    const limitedTax = calcTaxAtScale(taxable, family.adults) - cap;
+    return {
+      tax: Math.max(withChildren, limitedTax),
+      // When the benefit is capped, further income is taxed using adult parts.
+      marginalParts: limitedTax > withChildren ? family.adults : nbParts,
+    };
+  }
+
+  function calcAnnualIR(netImposableMonthly, family) {
+    const taxable = calcTaxableIncome(netImposableMonthly);
+    const grossTax = calcFamilyTax(taxable, family).tax;
     // The amount depends on joint taxation, not on the number of child parts.
     const allowance = family.adults === 2 ? DECOTE_COUPLE : DECOTE_SINGLE;
     const decote = Math.max(0, allowance - grossTax * DECOTE_RATE);
     return Math.max(0, grossTax - decote);
   }
 
-  function getMarginalRate(netImposableMonthly, nbParts) {
-    const annual     = netImposableMonthly * 12;
-    const abattement = Math.min(FP_MAX, Math.max(FP_MIN, annual * FP_RATE));
-    const perPart    = (annual - abattement) / nbParts;
+  function getMarginalRate(netImposableMonthly, family) {
+    const taxable = calcTaxableIncome(netImposableMonthly);
+    const perPart = taxable / calcFamilyTax(taxable, family).marginalParts;
     for (let i = IR_TRANCHES.length - 1; i >= 0; i--) {
       if (perPart > IR_TRANCHES[i].min) return IR_TRANCHES[i].rate;
     }
@@ -354,7 +381,7 @@ const CALC = (() => {
     const total = net - effectiveMonthlyIR + aide;
 
     const effectiveRate = annualNetImposable > 0 ? annualIR / annualNetImposable : 0;
-    const marginalRate  = getMarginalRate(netImposable, nbParts);
+    const marginalRate  = getMarginalRate(netImposable, family);
 
     return {
       breakdown, totalCotisations, net, netImposable,
@@ -387,6 +414,7 @@ const CALC = (() => {
   return {
     calculate,
     calcAnnualIR,
+    getMarginalRate,
     generateChartPoints,
     calcNbParts,
     calcPinelReduction,
