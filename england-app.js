@@ -29,7 +29,10 @@
       marriageAllowance: $('en-marriage').checked, date,
       earners: Array.from({ length: adults }, (_, i) => ({
         age: bound(number(`en-age-${i}`, 30), 18, 65),
-        pensionPercent: bound(number(`en-pension-${i}`), 0, 100),
+        ...($(`en-pension-unit-${i}`).value === 'percent'
+          ? { pensionPercent: bound(number(`en-pension-${i}`), 0, 100) }
+          : { pensionMonthly: Math.max(0, number(`en-pension-${i}`))
+            / ($(`en-pension-unit-${i}`).value === 'annual' ? 12 : 1) }),
         studentPlan: $(`en-loan-${i}`).value, postgraduate: $(`en-pg-${i}`).checked,
         capability: $(`en-capability-${i}`).value, carer: $(`en-carer-${i}`).checked,
       })),
@@ -318,6 +321,24 @@
     if (selectedGross != null) selectGross(selectedGross, true);
   }
 
+  for (let i = 0; i < 2; i++) {
+    let previousUnit = 'percent';
+    $(`en-pension-unit-${i}`).addEventListener('input', () => {
+      const unit = $(`en-pension-unit-${i}`).value;
+      const input = $(`en-pension-${i}`);
+      const share = number('en-adults', 1) === 1 ? 1 : bound(number('en-share', 50), 0, 100) / 100;
+      const gross = (selectedGross ?? lastGross) * (i === 0 ? share : 1 - share);
+      const value = Math.max(0, number(input.id));
+      const monthly = previousUnit === 'percent' ? gross * Math.min(value, 100) / 100
+        : value / (previousUnit === 'annual' ? 12 : 1);
+      input.value = Number((unit === 'percent' ? (gross > 0 ? Math.min(100, monthly / gross * 100) : 0)
+        : monthly * (unit === 'annual' ? 12 : 1)).toFixed(unit === 'percent' ? 6 : 2));
+      input.max = unit === 'percent' ? '100' : '';
+      input.step = unit === 'percent' ? '0.5' : '0.01';
+      $(`en-pension-label-${i}`).textContent = `Salary-sacrifice pension (${unit === 'percent' ? '%' : unit === 'annual' ? '£/year' : '£/month'})`;
+      previousUnit = unit;
+    });
+  }
   $('en-child-count').addEventListener('input', () => { renderChildren(); rebuild(); });
   for (const input of document.querySelectorAll('#en-controls input, #en-controls select, .england-settings input, .england-settings select')) {
     if (input.id !== 'en-child-count') input.addEventListener('input', rebuild);

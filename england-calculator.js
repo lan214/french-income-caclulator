@@ -49,7 +49,9 @@ const ENGLAND_CALC = (() => {
 
   function payroll(monthlyGross, settings = {}) {
     const gross = positive(monthlyGross);
-    const pension = gross * clamp(positive(settings.pensionPercent), 0, 100) / 100;
+    const pension = settings.pensionMonthly != null
+      ? Math.min(gross, positive(settings.pensionMonthly))
+      : gross * clamp(positive(settings.pensionPercent), 0, 100) / 100;
     const pay = gross - pension;
     const tax = incomeTax(pay * 12);
     const niMain = pence(Math.max(0, Math.min(pay, RATES.niUpperMonthly) - RATES.niPrimaryMonthly) * 0.08);

@@ -74,8 +74,12 @@ Employer NI is displayed for context: 15% above £417/month, or above £4,189 fo
 ordinary under-21 relief. It never reduces take-home. Employer-level Employment
 Allowance and specialised reliefs are not allocated to an employee.
 
-Pension input is specifically **salary sacrifice**, as a percentage of contractual
-gross. It reduces cash salary, taxable salary, NI pay and ANI. Ordinary net-pay
+Pension input is specifically **salary sacrifice**, entered per adult as a percentage
+of contractual gross, pounds per month, or pounds per year (divided by 12).
+Switching units preserves the contribution at the selected salary. A fixed pound
+amount stays fixed while exploring the graph; a percentage scales with salary.
+The modeled deduction is limited to each adult's gross pay, including at lower
+chart salaries. It reduces cash salary, taxable salary, NI pay and ANI. Ordinary net-pay
 or relief-at-source pensions, employer pension contributions, carry-forward,
 annual-allowance charges and tapered pension allowances are not calculated.
 Employers must keep sacrifice within minimum-wage rules; hours are not entered.
