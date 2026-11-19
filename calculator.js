@@ -38,6 +38,12 @@ const CALC = (() => {
   const FP_MIN  = 509;
   const FP_MAX  = 14555;
 
+  // Décote : imposition 2026 des revenus 2025, avant réductions (dont Pinel).
+  // https://www.economie.gouv.fr/particuliers/impots-et-fiscalite/gerer-mon-impot-sur-le-revenu/pouvez-vous-beneficier-de-la-decote-de-limpot-sur-le-revenu
+  const DECOTE_SINGLE = 897;
+  const DECOTE_COUPLE = 1483;
+  const DECOTE_RATE = 0.4525;
+
   // ── Aides individuelles — barème avril 2026 ──────────────────
   const RSA_MAX  = 651.69;  // RSA personne seule
   const MF_PA    = 638.28;  // Montant forfaitaire prime d'activité
@@ -138,7 +144,8 @@ const CALC = (() => {
   // IMPÔT SUR LE REVENU
   // ================================================================
 
-  function calcAnnualIR(netImposableMonthly, nbParts) {
+  function calcAnnualIR(netImposableMonthly, family) {
+    const nbParts    = calcNbParts(family);
     const annual     = netImposableMonthly * 12;
     const abattement = Math.min(FP_MAX, Math.max(FP_MIN, annual * FP_RATE));
     const taxable    = annual - abattement;
@@ -150,7 +157,11 @@ const CALC = (() => {
         taxPerPart += (Math.min(perPart, t.max) - t.min) * t.rate;
       }
     }
-    return Math.max(0, taxPerPart * nbParts);
+    const grossTax = Math.max(0, taxPerPart * nbParts);
+    // The amount depends on joint taxation, not on the number of child parts.
+    const allowance = family.adults === 2 ? DECOTE_COUPLE : DECOTE_SINGLE;
+    const decote = Math.max(0, allowance - grossTax * DECOTE_RATE);
+    return Math.max(0, grossTax - decote);
   }
 
   function getMarginalRate(netImposableMonthly, nbParts) {
@@ -322,7 +333,7 @@ const CALC = (() => {
       calcCotisations(grossMonthly, isCadre);
 
     const nbParts            = calcNbParts(family);
-    const annualIR           = calcAnnualIR(netImposable, nbParts);
+    const annualIR           = calcAnnualIR(netImposable, family);
     const monthlyIR          = annualIR / 12;
     const annualNetImposable = netImposable * 12;
 
@@ -375,6 +386,7 @@ const CALC = (() => {
   // ── Public API ──────────────────────────────────────────────
   return {
     calculate,
+    calcAnnualIR,
     generateChartPoints,
     calcNbParts,
     calcPinelReduction,
