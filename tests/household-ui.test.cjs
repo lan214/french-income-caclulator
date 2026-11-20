@@ -14,6 +14,7 @@ function loadUI() {
       if (!elements.has(id)) elements.set(id, {
         id, value: '', checked: false, hidden: false, style: {}, dataset: {},
         handlers: {}, innerHTML: '', textContent: '',
+        replaceChildren() { this.innerHTML = ''; },
         classList: { toggle() {}, add() {}, remove() {} },
         get valueAsNumber() { return this.value === '' ? NaN : Number(this.value); },
         addEventListener(type, callback) { this.handlers[type] = callback; },

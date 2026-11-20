@@ -51,7 +51,7 @@
       born: $(`en-child-born-${i}`).value, education: $(`en-child-education-${i}`).checked,
       disability: $(`en-child-disability-${i}`).value, childcare: number(`en-child-care-${i}`),
     } : draft);
-    $('en-children').innerHTML = '';
+    $('en-children').replaceChildren();
     if (!count) return;
     const card = document.createElement('section');
     card.className = 'england-settings';
@@ -205,7 +205,7 @@
       for (const key of ['pension', 'ni', 'tax', 'loans', 'take-home', 'charge', 'child-benefit', 'uc', 'total', 'tfc', 'after-childcare', 'tax-base', 'effective']) {
         $(`en-${key}-${period}`).textContent = '—';
       }
-      for (const key of ['ni-details', 'earner-details', 'uc-details', 'mortgage']) $(`en-${key}-${period}`).innerHTML = '';
+      for (const key of ['ni-details', 'earner-details', 'uc-details', 'mortgage']) $(`en-${key}-${period}`).replaceChildren();
       $(`en-message-${period}`).textContent = '';
     }
     charts.forEach(chart => { chart._selectedX = null; chart.update('none'); });
