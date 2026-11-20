@@ -26,6 +26,7 @@ function loadUI() {
     set innerHTML(value) { this._html = value; register(value); }
     get innerHTML() { return this._html || ''; }
     appendChild() {}
+    replaceChildren() { this._html = ''; }
     addEventListener(event, fn) { (this.handlers[event] ||= []).push(fn); }
     dispatch(event, data = {}) { for (const handler of this.handlers[event] || []) handler(data); }
     focus() { document.activeElement = this; }

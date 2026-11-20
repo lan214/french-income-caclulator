@@ -635,10 +635,10 @@ function clearDetails() {
    'aCot','aNet','aNetImposable','aTax','aTaxableIncome','aRateEff','aAids','aPinel','aTotal',
    'dMortMax','aMortMax']
     .forEach(id => { const el = document.getElementById(id); if (el) setHTML(id, ph); });
-  document.getElementById('cotList').innerHTML      = '';
-  document.getElementById('aidsList').innerHTML     = '';
-  document.getElementById('mortMonthList').innerHTML  = '';
-  document.getElementById('mortAnnualList').innerHTML = '';
+  document.getElementById('cotList').replaceChildren();
+  document.getElementById('aidsList').replaceChildren();
+  document.getElementById('mortMonthList').replaceChildren();
+  document.getElementById('mortAnnualList').replaceChildren();
   document.getElementById('grossBadge').style.display = 'none';
 }
 
