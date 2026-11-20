@@ -96,6 +96,24 @@ test('click-to-edit annual income preserves exact input and updates couples inde
   assert.equal(ui.nodes.get('en-gross-annual').value, '30000');
 });
 
+test('income editors stay open for IME confirmation and close on ordinary Enter', () => {
+  const { nodes } = loadUI();
+  for (const period of ['monthly', 'annual']) {
+    const input = nodes.get(`en-gross-${period}`);
+    nodes.get(`en-gross-display-${period}`).dispatch('click');
+    for (const event of [
+      { key: 'Enter', isComposing: true },
+      { key: 'Enter', isComposing: false, keyCode: 229 },
+      { key: 'ArrowRight' },
+    ]) {
+      input.dispatch('keydown', event);
+      assert.equal(input.hidden, false);
+    }
+    input.dispatch('keydown', { key: 'Enter', isComposing: false, keyCode: 13 });
+    assert.equal(input.hidden, true);
+  }
+});
+
 test('children, scheme changes and support toggle recalculate restricted and cash support', () => {
   const ui = loadUI();
   ui.nodes.get('en-gross-display-annual').dispatch('click');

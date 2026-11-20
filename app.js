@@ -734,6 +734,7 @@ for (const [id, divisor] of [['dGross', 1], ['aGross', 12]]) {
     display.hidden = false;
   });
   input.addEventListener('keydown', (e) => {
+    if (e.isComposing || e.keyCode === 229) return;
     if (e.key === 'Enter') input.blur();
   });
 }

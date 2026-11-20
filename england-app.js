@@ -294,7 +294,10 @@
       showGross(selectedGross);
       input.hidden = true; display.hidden = false;
     });
-    input.addEventListener('keydown', event => { if (event.key === 'Enter') input.blur(); });
+    input.addEventListener('keydown', event => {
+      if (event.isComposing || event.keyCode === 229) return;
+      if (event.key === 'Enter') input.blur();
+    });
   }
 
   function rebuild() {

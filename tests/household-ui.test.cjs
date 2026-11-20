@@ -109,6 +109,24 @@ test('changing salary split refreshes a typed frozen amount and both chart datas
   assert.equal(ui.document.getElementById('incomeSplitField').style.display, 'none');
 });
 
+test('income editors stay open for IME confirmation and close on ordinary Enter', () => {
+  const { document } = loadUI();
+  for (const id of ['dGross', 'aGross']) {
+    const input = document.getElementById(id);
+    document.getElementById(id + 'Display').handlers.click();
+    for (const event of [
+      { key: 'Enter', isComposing: true },
+      { key: 'Enter', isComposing: false, keyCode: 229 },
+      { key: 'ArrowRight' },
+    ]) {
+      input.handlers.keydown(event);
+      assert.equal(input.hidden, false);
+    }
+    input.handlers.keydown({ key: 'Enter', isComposing: false, keyCode: 13 });
+    assert.equal(input.hidden, true);
+  }
+});
+
 test('tax base is shown after deductions, handles zero and clears with the selection', () => {
   const ui = loadUI();
   ui.evaluate('renderDetails(3000)');
