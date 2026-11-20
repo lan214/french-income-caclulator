@@ -15,7 +15,6 @@ Keep calculation logic independent of the DOM and Chart.js. Preserve script orde
 
 ## Build, Test, and Development Commands
 
-- `python3 -m http.server 8000`: serve the repository; visit `http://localhost:8000`.
 - `node --check app.js`: check UI JavaScript syntax. Repeat for `calculator.js` and `mortgage.js` when changed.
 - `git diff --check`: detect whitespace errors before committing.
 - `node --test tests/*.test.cjs`: run calculation and UI regression tests.
